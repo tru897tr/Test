@@ -59,7 +59,7 @@ def check_and_install_dependencies():
 {Colors.CYAN}{Colors.BRIGHT}
     ╔══════════════════════════════════════════════════════════╗
     ║                                                          ║
-    ║            🔍 DEPENDENCY VERIFICATION SYSTEM 🔍           ║
+    ║            🔍 DEPENDENCY VERIFICATION SYSTEM 🔍         ║
     ║                                                          ║
     ╚══════════════════════════════════════════════════════════╝
 {Colors.RESET}
