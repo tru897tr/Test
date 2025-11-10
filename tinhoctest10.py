@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import random
 import time
 import os
@@ -8,11 +11,11 @@ import platform
 import socket
 
 def clear():
+    """Clear screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 class Colors:
     CYAN = '\033[96m'
-    BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
@@ -21,45 +24,35 @@ class Colors:
     DIM = '\033[2m'
     RESET = '\033[0m'
 
-def type_text(text, delay=0.015, color=Colors.GREEN):
-    """Hiệu ứng typing"""
-    for char in text:
-        sys.stdout.write(f"{color}{char}{Colors.RESET}")
-        sys.stdout.flush()
-        time.sleep(delay)
-    print()
-
-def loading_bar(text="Loading", duration=2, width=50):
-    """Loading bar đơn giản và đẹp"""
+def loading_bar(text="Loading", duration=2):
+    """Simple loading bar"""
+    width = 40
     for i in range(width + 1):
-        progress = i / width
-        filled = int(width * progress)
+        filled = int((i / width) * width)
         bar = "█" * filled + "░" * (width - filled)
-        percentage = int(progress * 100)
+        percent = int((i / width) * 100)
         
-        if percentage < 40:
+        if percent < 40:
             color = Colors.RED
-        elif percentage < 75:
+        elif percent < 75:
             color = Colors.YELLOW
         else:
             color = Colors.GREEN
         
-        sys.stdout.write(f"\r  {color}[{bar}]{Colors.RESET} {percentage:3d}% {text}")
-        sys.stdout.flush()
+        print(f"\r  {color}[{bar}]{Colors.RESET} {percent}% {text}", end="", flush=True)
         time.sleep(duration / width)
     
-    print(f"\r  {Colors.GREEN}[{'█' * width}]{Colors.RESET} 100% {text} {Colors.GREEN}✓{Colors.RESET}")
+    print(f"\r  {Colors.GREEN}[{'█' * width}]{Colors.RESET} 100% {text} ✓")
 
-def check_and_install_dependencies():
-    """Kiểm tra và cài đặt dependencies - CỰC ĐẸP"""
+def check_dependencies():
+    """Check and install dependencies"""
     clear()
     
-    # Banner đẹp
     print(f"""
 {Colors.CYAN}{Colors.BRIGHT}
     ╔══════════════════════════════════════════════════════════╗
     ║                                                          ║
-    ║            🔍 DEPENDENCY VERIFICATION SYSTEM 🔍          ║
+    ║            🔍 DEPENDENCY VERIFICATION SYSTEM 🔍           ║
     ║                                                          ║
     ╚══════════════════════════════════════════════════════════╝
 {Colors.RESET}
@@ -68,55 +61,44 @@ def check_and_install_dependencies():
     time.sleep(0.5)
     
     required = {
-        'psutil': 'System & hardware monitoring',
-        'requests': 'HTTP library for API calls'
+        'psutil': 'System monitoring',
+        'requests': 'HTTP library'
     }
     
     print(f"{Colors.YELLOW}  ► Scanning dependencies...{Colors.RESET}\n")
-    time.sleep(0.8)
+    time.sleep(0.5)
     
-    results = {}
     missing = []
     
-    # Kiểm tra từng package
     for pkg, desc in required.items():
-        sys.stdout.write(f"  {Colors.CYAN}[SCAN]{Colors.RESET} {pkg:<12} - ")
-        sys.stdout.flush()
-        time.sleep(0.4)
+        print(f"  {Colors.CYAN}[SCAN]{Colors.RESET} {pkg:<12} - ", end="", flush=True)
+        time.sleep(0.3)
         
         try:
             __import__(pkg)
-            print(f"{Colors.GREEN}{Colors.BRIGHT}✓ OK{Colors.RESET}      ({desc})")
-            results[pkg] = True
+            print(f"{Colors.GREEN}✓ OK{Colors.RESET}      ({desc})")
         except ImportError:
-            print(f"{Colors.RED}{Colors.BRIGHT}✗ ERROR{Colors.RESET}   ({desc})")
-            results[pkg] = False
+            print(f"{Colors.RED}✗ ERROR{Colors.RESET}   ({desc})")
             missing.append(pkg)
         
-        time.sleep(0.3)
+        time.sleep(0.2)
     
     print(f"\n{Colors.CYAN}{'─' * 60}{Colors.RESET}\n")
     
-    # Nếu tất cả OK
     if not missing:
         print(f"  {Colors.GREEN}{Colors.BRIGHT}✓ ALL DEPENDENCIES INSTALLED{Colors.RESET}")
-        print(f"  {Colors.GREEN}System is ready to launch!{Colors.RESET}\n")
+        print(f"  {Colors.GREEN}System ready!{Colors.RESET}\n")
         time.sleep(1.5)
         return True
     
-    # Nếu thiếu packages
     print(f"  {Colors.RED}{Colors.BRIGHT}⚠ MISSING: {len(missing)} package(s){Colors.RESET}")
     print(f"  {Colors.RED}Required: {', '.join(missing)}{Colors.RESET}\n")
     
     print(f"{Colors.YELLOW}  ╔════════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.YELLOW}  ║                                                        ║{Colors.RESET}")
-    print(f"{Colors.YELLOW}  ║  {Colors.BRIGHT}Would you like to install missing packages?{Colors.RESET}       {Colors.YELLOW}║{Colors.RESET}")
-    print(f"{Colors.YELLOW}  ║                                                        ║{Colors.RESET}")
+    print(f"{Colors.YELLOW}  ║  Would you like to install missing packages?          ║{Colors.RESET}")
     print(f"{Colors.YELLOW}  ╠════════════════════════════════════════════════════════╣{Colors.RESET}")
-    print(f"{Colors.YELLOW}  ║                                                        ║{Colors.RESET}")
     print(f"{Colors.GREEN}  ║  [1] YES - Auto install (Recommended)                 ║{Colors.RESET}")
-    print(f"{Colors.RED}  ║  [2] NO  - Continue anyway  {Colors.BRIGHT}⚠ HIGH RISK{Colors.RESET}{Colors.RED}            ║{Colors.RESET}")
-    print(f"{Colors.YELLOW}  ║                                                        ║{Colors.RESET}")
+    print(f"{Colors.RED}  ║  [2] NO  - Continue anyway  ⚠ HIGH RISK                ║{Colors.RESET}")
     print(f"{Colors.YELLOW}  ╚════════════════════════════════════════════════════════╝{Colors.RESET}\n")
     
     while True:
@@ -133,79 +115,68 @@ def check_and_install_dependencies():
                     print(f"  {Colors.CYAN}Installing {pkg}...{Colors.RESET}")
                     
                     try:
-                        result = subprocess.run(
-                            [sys.executable, "-m", "pip", "install", pkg, "-q"],
-                            capture_output=True,
-                            timeout=60
-                        )
+                        subprocess.check_call([
+                            sys.executable, "-m", "pip", "install", pkg, "-q"
+                        ], timeout=60)
                         
-                        if result.returncode == 0:
-                            print(f"  {Colors.GREEN}✓ {pkg} installed successfully{Colors.RESET}\n")
-                            success_count += 1
-                        else:
-                            print(f"  {Colors.RED}✗ Failed to install {pkg}{Colors.RESET}\n")
-                    except Exception as e:
-                        print(f"  {Colors.RED}✗ Error: {str(e)[:40]}{Colors.RESET}\n")
+                        print(f"  {Colors.GREEN}✓ {pkg} installed!{Colors.RESET}\n")
+                        success_count += 1
+                    except:
+                        print(f"  {Colors.RED}✗ Failed to install {pkg}{Colors.RESET}\n")
                     
                     time.sleep(0.3)
                 
                 print(f"{Colors.CYAN}{'─' * 60}{Colors.RESET}\n")
                 
                 if success_count == len(missing):
-                    print(f"  {Colors.GREEN}{Colors.BRIGHT}✓ Installation completed successfully!{Colors.RESET}\n")
-                    input(f"  {Colors.DIM}Press Enter to verify installation...{Colors.RESET}")
-                    return check_and_install_dependencies()  # Kiểm tra lại
+                    print(f"  {Colors.GREEN}{Colors.BRIGHT}✓ Installation complete!{Colors.RESET}\n")
+                    input(f"  {Colors.DIM}Press Enter to verify...{Colors.RESET}")
+                    return check_dependencies()
                 else:
-                    print(f"  {Colors.YELLOW}⚠ Partial installation ({success_count}/{len(missing)}){Colors.RESET}\n")
-                    input(f"  {Colors.DIM}Press Enter to continue...{Colors.RESET}")
+                    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
                     return False
             
             elif choice == "2":
                 print(f"\n{Colors.RED}{'─' * 60}{Colors.RESET}\n")
-                print(f"  {Colors.RED}{Colors.BRIGHT}⚠ WARNING - RUNNING WITHOUT DEPENDENCIES ⚠{Colors.RESET}\n")
-                print(f"  {Colors.RED}Consequences:{Colors.RESET}")
-                print(f"  {Colors.RED}  • System Information will NOT work{Colors.RESET}")
-                print(f"  {Colors.RED}  • Crypto Tracker limited to demo mode{Colors.RESET}")
-                print(f"  {Colors.RED}  • Features may crash unexpectedly{Colors.RESET}\n")
-                print(f"{Colors.RED}{'─' * 60}{Colors.RESET}\n")
+                print(f"  {Colors.RED}{Colors.BRIGHT}⚠ WARNING ⚠{Colors.RESET}\n")
+                print(f"  {Colors.RED}Some features may not work!{Colors.RESET}\n")
                 
-                confirm = input(f"  {Colors.YELLOW}Type 'CONTINUE' to proceed: {Colors.RESET}").strip()
+                confirm = input(f"  {Colors.YELLOW}Type 'CONTINUE': {Colors.RESET}").strip()
                 if confirm.upper() == 'CONTINUE':
-                    print(f"\n  {Colors.YELLOW}⚠ Proceeding with limited mode...{Colors.RESET}\n")
+                    print(f"\n  {Colors.YELLOW}⚠ Limited mode{Colors.RESET}\n")
                     time.sleep(1.5)
                     return False
                 else:
-                    print(f"\n  {Colors.GREEN}✓ Good choice! Please install dependencies.{Colors.RESET}\n")
-                    time.sleep(1)
+                    print(f"\n  {Colors.GREEN}✓ Good choice!{Colors.RESET}\n")
                     sys.exit(0)
             else:
-                print(f"  {Colors.RED}Invalid choice! Enter 1 or 2.{Colors.RESET}")
+                print(f"  {Colors.RED}Invalid! Enter 1 or 2{Colors.RESET}")
         
         except KeyboardInterrupt:
-            print(f"\n\n  {Colors.RED}Installation cancelled.{Colors.RESET}\n")
+            print(f"\n\n  {Colors.RED}Cancelled{Colors.RESET}\n")
             sys.exit(0)
 
 def show_banner():
-    """Banner khởi động - GỌN GÀN"""
+    """Show banner"""
     clear()
     
     print(f"""
 {Colors.CYAN}{Colors.BRIGHT}
     ╔═══════════════════════════════════════════════════════════╗
     ║                                                           ║
-    ║   ████████╗███████╗███╗   ██╗████████╗ ██████╗ ██████╗    ║
-    ║   ╚══██╔══╝██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔══██╗   ║
-    ║      ██║   █████╗  ██╔██╗ ██║   ██║   ██║   ██║██████╔╝   ║
-    ║      ██║   ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██╔══██╗   ║
-    ║      ██║   ███████╗██║ ╚████║   ██║   ╚██████╔╝██║  ██║   ║
-    ║      ╚═╝   ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ║
+    ║   ████████╗███████╗███╗   ██╗████████╗ ██████╗ ██████╗   ║
+    ║   ╚══██╔══╝██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔══██╗  ║
+    ║      ██║   █████╗  ██╔██╗ ██║   ██║   ██║   ██║██████╔╝  ║
+    ║      ██║   ██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██╔══██╗  ║
+    ║      ██║   ███████╗██║ ╚████║   ██║   ╚██████╔╝██║  ██║  ║
+    ║      ╚═╝   ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝  ║
     ║                                                           ║
-    ║         ████████╗███████╗ █████╗ ███╗   ███╗              ║
-    ║         ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║              ║
-    ║            ██║   █████╗  ███████║██╔████╔██║              ║
-    ║            ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║              ║
-    ║            ██║   ███████╗██║  ██║██║ ╚═╝ ██║              ║
-    ║            ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝              ║
+    ║         ████████╗███████╗ █████╗ ███╗   ███╗             ║
+    ║         ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║             ║
+    ║            ██║   █████╗  ███████║██╔████╔██║             ║
+    ║            ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║             ║
+    ║            ██║   ███████╗██║  ██║██║ ╚═╝ ██║             ║
+    ║            ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝             ║
     ║                                                           ║
     ║              Credit by: Nguyễn Thanh Trứ                  ║
     ║                                                           ║
@@ -213,78 +184,124 @@ def show_banner():
 {Colors.RESET}
     """)
     
-    loading_bar("Booting system", 1.8)
+    loading_bar("Booting system", 1.5)
     
     print(f"\n  {Colors.GREEN}{Colors.BRIGHT}>>> SYSTEM ONLINE <<<{Colors.RESET}\n")
     time.sleep(0.8)
 
-def menu_selection():
-    """Menu gọn gàng"""
-    options = [
-        ("🌧️  Matrix Digital Rain", "matrix"),
-        ("💰 Crypto Tracker [REAL-TIME]", "crypto"),
-        ("🔐 Password Generator", "password"),
-        ("🌈 Rainbow Text Effect", "rainbow"),
-        ("🚀 Rocket Launch", "rocket"),
-        ("🖥️  System Information", "sysinfo"),
-        ("❌ Exit", "exit")
-    ]
+def show_menu():
+    """Show main menu"""
+    clear()
     
-    while True:
-        clear()
-        print(f"\n{Colors.CYAN}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-        print(f"{Colors.CYAN}{Colors.BRIGHT}  ║       🔥 CYBER CONTROL CENTER V3 🔥                ║{Colors.RESET}")
-        print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-        print(f"{Colors.CYAN}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    print(f"\n{Colors.CYAN}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║         🔥 TENTOR TEAM CONTROL CENTER 🔥           ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    print(f"  {Colors.GREEN}[1]{Colors.RESET} 🌧️  Matrix Digital Rain")
+    print(f"  {Colors.CYAN}{Colors.BRIGHT}[2]{Colors.RESET} 💰 Crypto Tracker [REAL-TIME]")
+    print(f"  {Colors.GREEN}[3]{Colors.RESET} 🔐 Password Generator")
+    print(f"  {Colors.GREEN}[4]{Colors.RESET} 🌈 Rainbow Text Effect")
+    print(f"  {Colors.GREEN}[5]{Colors.RESET} 🚀 Rocket Launch")
+    print(f"  {Colors.GREEN}[6]{Colors.RESET} 🖥️  System Information")
+    print(f"  {Colors.MAGENTA}{Colors.BRIGHT}[7]{Colors.RESET} 📥 Download Tools")
+    print(f"  {Colors.RED}{Colors.BRIGHT}[8]{Colors.RESET} ❌ Exit")
+    
+    now = datetime.now().strftime("%H:%M:%S")
+    print(f"\n  {Colors.DIM}Time: {now} | Status: {Colors.GREEN}ONLINE{Colors.RESET}")
+    print(f"  {Colors.DIM}Credit: Nguyễn Thanh Trứ{Colors.RESET}\n")
+
+def download_menu():
+    """Download tools menu"""
+    clear()
+    
+    print(f"\n{Colors.MAGENTA}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║            📥 DOWNLOAD TOOLS MENU 📥               ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    print(f"  {Colors.CYAN}{Colors.BRIGHT}[1]{Colors.RESET} Download XWorld Tool {Colors.DIM}(by CTOOL){Colors.RESET}")
+    print(f"  {Colors.RED}{Colors.BRIGHT}[2]{Colors.RESET} Back to Main Menu\n")
+    
+    print(f"  {Colors.DIM}{'─' * 52}{Colors.RESET}\n")
+
+def download_xworld():
+    """Download XWorld tool"""
+    clear()
+    
+    print(f"\n{Colors.CYAN}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║          🌍 XWORLD TOOL DOWNLOADER 🌍              ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    print(f"  {Colors.GREEN}►{Colors.RESET} Tool    : {Colors.CYAN}XWorld{Colors.RESET}")
+    print(f"  {Colors.GREEN}►{Colors.RESET} Author  : {Colors.CYAN}CTOOL{Colors.RESET}")
+    print(f"  {Colors.GREEN}►{Colors.RESET} File    : {Colors.CYAN}main-xw.py{Colors.RESET}\n")
+    
+    print(f"  {Colors.DIM}{'─' * 52}{Colors.RESET}\n")
+    
+    try:
+        import requests
+    except ImportError:
+        print(f"  {Colors.RED}✗ 'requests' not installed{Colors.RESET}")
+        print(f"  {Colors.YELLOW}Install: pip install requests{Colors.RESET}\n")
+        input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
+        return
+    
+    loading_bar("Connecting", 1)
+    
+    url = "https://raw.githubusercontent.com/C-Dev7929/Tools/refs/heads/main/main-xw.py"
+    filename = "main-xw.py"
+    
+    try:
+        print(f"\n  {Colors.CYAN}► Downloading...{Colors.RESET}")
+        response = requests.get(url, timeout=30)
         
-        for idx, (desc, _) in enumerate(options, 1):
-            if "REAL-TIME" in desc:
-                print(f"  {Colors.CYAN}{Colors.BRIGHT}[{idx}]{Colors.RESET} {desc}")
-            elif idx == len(options):
-                print(f"  {Colors.RED}{Colors.BRIGHT}[{idx}]{Colors.RESET} {desc}")
-            else:
-                print(f"  {Colors.GREEN}[{idx}]{Colors.RESET} {desc}")
-        
-        now = datetime.now().strftime("%H:%M:%S")
-        print(f"\n  {Colors.DIM}Time: {now} | Status: {Colors.GREEN}ONLINE{Colors.RESET}\n")
-        
-        try:
-            choice = input(f"  {Colors.CYAN}root@terminal:~# {Colors.RESET}").strip()
+        if response.status_code == 200:
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(response.text)
             
-            idx = int(choice) - 1
-            if 0 <= idx < len(options):
-                return options[idx][1]
-            else:
-                print(f"  {Colors.RED}✗ Invalid option!{Colors.RESET}")
-                time.sleep(1)
-        except (ValueError, KeyboardInterrupt):
-            print(f"\n  {Colors.RED}✗ Invalid input!{Colors.RESET}")
-            time.sleep(1)
+            print(f"  {Colors.GREEN}✓ Success!{Colors.RESET}\n")
+            
+            print(f"  {Colors.DIM}{'─' * 52}{Colors.RESET}\n")
+            print(f"  {Colors.GREEN}►{Colors.RESET} Saved   : {Colors.CYAN}{filename}{Colors.RESET}")
+            print(f"  {Colors.GREEN}►{Colors.RESET} Size    : {Colors.CYAN}{len(response.text):,} bytes{Colors.RESET}")
+            print(f"  {Colors.GREEN}►{Colors.RESET} Path    : {Colors.CYAN}{os.path.abspath(filename)}{Colors.RESET}\n")
+            
+            print(f"  {Colors.YELLOW}Run:{Colors.RESET} {Colors.CYAN}python {filename}{Colors.RESET}\n")
+        else:
+            print(f"  {Colors.RED}✗ Failed (Code: {response.status_code}){Colors.RESET}\n")
+    
+    except Exception as e:
+        print(f"  {Colors.RED}✗ Error: {str(e)[:40]}{Colors.RESET}\n")
+    
+    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
 
 def feature_crypto():
-    """Crypto tracker - FIXED & BEAUTIFUL"""
+    """Crypto tracker"""
     clear()
     
     print(f"\n{Colors.YELLOW}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
     print(f"{Colors.YELLOW}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.YELLOW}{Colors.BRIGHT}  ║        💰 CRYPTO PRICE TRACKER [LIVE] 💰           ║{Colors.RESET}")
+    print(f"{Colors.YELLOW}{Colors.BRIGHT}  ║        💰 CRYPTO TRACKER [LIVE] 💰                 ║{Colors.RESET}")
     print(f"{Colors.YELLOW}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
     print(f"{Colors.YELLOW}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
     
-    # Check requests
     try:
         import requests
         has_requests = True
-    except ImportError:
+    except:
         has_requests = False
     
     if not has_requests:
         print(f"  {Colors.RED}✗ 'requests' not installed{Colors.RESET}")
-        print(f"  {Colors.YELLOW}⚠ Running in DEMO mode...{Colors.RESET}\n")
+        print(f"  {Colors.YELLOW}⚠ DEMO mode{Colors.RESET}\n")
         demo_mode = True
     else:
-        loading_bar("Connecting to CoinGecko API", 1.5)
+        loading_bar("Connecting to API", 1.5)
         
         try:
             url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,cardano&vs_currencies=usd&include_24h_change=true"
@@ -299,11 +316,10 @@ def feature_crypto():
                 "ADA": {"price": data["cardano"]["usd"], "change": data["cardano"].get("usd_24h_change", 0)}
             }
             demo_mode = False
-            print(f"  {Colors.GREEN}✓ Connected successfully!{Colors.RESET}\n")
-        except Exception as e:
+            print(f"  {Colors.GREEN}✓ Connected!{Colors.RESET}\n")
+        except:
             demo_mode = True
-            print(f"  {Colors.RED}✗ Connection failed{Colors.RESET}")
-            print(f"  {Colors.YELLOW}⚠ Using DEMO mode{Colors.RESET}\n")
+            print(f"  {Colors.YELLOW}⚠ DEMO mode{Colors.RESET}\n")
             prices = {
                 "BTC": {"price": 45000, "change": 2.5},
                 "ETH": {"price": 3000, "change": 1.8},
@@ -321,17 +337,16 @@ def feature_crypto():
             "ADA": {"price": 0.5, "change": -1.1}
         }
     
-    time.sleep(0.8)
-    print(f"  {Colors.DIM}Press Ctrl+C to stop...{Colors.RESET}\n")
-    time.sleep(0.8)
+    time.sleep(0.5)
+    print(f"  {Colors.DIM}Press Ctrl+C to stop{Colors.RESET}\n")
+    time.sleep(0.5)
     
-    coins = list(prices.keys())
-    update_count = 0
+    coins = ["BTC", "ETH", "BNB", "SOL", "ADA"]
+    count = 0
     
     try:
         while True:
-            # Update real data every 30 seconds
-            if not demo_mode and update_count > 0 and update_count % 30 == 0:
+            if not demo_mode and count > 0 and count % 30 == 0:
                 try:
                     response = requests.get(url, timeout=10)
                     data = response.json()
@@ -345,18 +360,16 @@ def feature_crypto():
                 except:
                     pass
             
-            update_count += 1
+            count += 1
             now = datetime.now().strftime("%H:%M:%S")
             mode = f"{Colors.RED}[DEMO]{Colors.RESET}" if demo_mode else f"{Colors.GREEN}[LIVE]{Colors.RESET}"
             
-            # Header
             print(f"  {Colors.CYAN}╔══════════════════════════════════════════════════╗{Colors.RESET}")
             print(f"  {Colors.CYAN}║{Colors.BRIGHT} MARKET {Colors.RESET}{mode} {Colors.DIM}{now}{Colors.RESET}                               {Colors.CYAN}║{Colors.RESET}")
             print(f"  {Colors.CYAN}╠══════════════════════════════════════════════════╣{Colors.RESET}")
-            print(f"  {Colors.CYAN}║ {'COIN':^6} │ {'PRICE':^14} │ {'24H':^12} │ {'TREND':^7} ║{Colors.RESET}")
+            print(f"  {Colors.CYAN}║ {'COIN':^6} │ {'PRICE':^14} │ {'24H':^12} │ {'CHART':^6} ║{Colors.RESET}")
             print(f"  {Colors.CYAN}╠══════════════════════════════════════════════════╣{Colors.RESET}")
             
-            # Data
             for coin in coins:
                 if demo_mode:
                     delta = random.uniform(-0.2, 0.2)
@@ -369,7 +382,7 @@ def feature_crypto():
                 color = Colors.GREEN if change > 0 else Colors.RED
                 arrow = "▲" if change > 0 else "▼"
                 
-                chart_len = int(min(abs(change), 7))
+                chart_len = int(min(abs(change), 6))
                 chart = "█" * chart_len
                 
                 if price >= 1000:
@@ -379,58 +392,168 @@ def feature_crypto():
                 
                 change_str = f"{arrow} {abs(change):>4.2f}%"
                 
-                print(f"  {Colors.CYAN}║{Colors.BRIGHT} {coin:^6}{Colors.RESET} {Colors.CYAN}│{Colors.RESET} {price_str} {Colors.CYAN}│{Colors.RESET} {color}{change_str:^12}{Colors.RESET} {Colors.CYAN}│{Colors.RESET} {color}{chart:^7}{Colors.RESET} {Colors.CYAN}║{Colors.RESET}")
+                print(f"  {Colors.CYAN}║{Colors.BRIGHT} {coin:^6}{Colors.RESET} {Colors.CYAN}│{Colors.RESET} {price_str} {Colors.CYAN}│{Colors.RESET} {color}{change_str:^12}{Colors.RESET} {Colors.CYAN}│{Colors.RESET} {color}{chart:^6}{Colors.RESET} {Colors.CYAN}║{Colors.RESET}")
             
-            print(f"  {Colors.CYAN}╚══════════════════════════════════════════════════╝{Colors.RESET}")
-            
-            # Stats
-            avg = sum(prices[c]["change"] for c in coins) / len(coins)
-            trend = "🚀 BULL" if avg > 0 else "📉 BEAR"
-            trend_color = Colors.GREEN if avg > 0 else Colors.RED
-            
-            print(f"\n  {Colors.DIM}Market: {trend_color}{trend}{Colors.RESET} {Colors.DIM}| Avg: {trend_color}{avg:+.2f}%{Colors.RESET}", end="")
-            
-            if not demo_mode:
-                next_update = 30 - (update_count % 30)
-                print(f" {Colors.DIM}| Next: {next_update}s{Colors.RESET}")
-            else:
-                print()
-            
-            print()
+            print(f"  {Colors.CYAN}╚══════════════════════════════════════════════════╝{Colors.RESET}\n")
             
             time.sleep(1)
             
-            # Clear previous display
-            for _ in range(12):
-                sys.stdout.write('\033[F\033[K')
+            # Clear screen
+            for _ in range(11):
+                print('\033[F\033[K', end='')
     
     except KeyboardInterrupt:
-        print(f"\n\n  {Colors.GREEN}✓ Tracker stopped{Colors.RESET}\n")
+        print(f"\n\n  {Colors.GREEN}✓ Stopped{Colors.RESET}\n")
         time.sleep(1)
 
+def feature_matrix():
+    """Matrix rain"""
+    clear()
+    
+    print(f"\n{Colors.GREEN}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║            🌧️  MATRIX DIGITAL RAIN 🌧️              ║{Colors.RESET}")
+    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.GREEN}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    loading_bar("Loading Matrix", 1.2)
+    print(f"\n  {Colors.DIM}Press Ctrl+C to exit{Colors.RESET}\n")
+    time.sleep(0.5)
+    
+    chars = "01アイウABCDEF"
+    width = 54
+    height = 18
+    
+    try:
+        while True:
+            for _ in range(height):
+                line = "  " + "".join([
+                    f"{Colors.BRIGHT if random.random() > 0.9 else ''}{Colors.GREEN}{random.choice(chars)}{Colors.RESET}"
+                    for _ in range(width)
+                ])
+                print(line)
+                time.sleep(0.04)
+            
+            for _ in range(height):
+                print('\033[F\033[K', end='')
+    
+    except KeyboardInterrupt:
+        print(f"\n\n  {Colors.GREEN}✓ Stopped{Colors.RESET}\n")
+        time.sleep(1)
+
+def feature_password():
+    """Password generator"""
+    clear()
+    
+    print(f"\n{Colors.MAGENTA}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║       🔐 QUANTUM PASSWORD GENERATOR 🔐             ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    loading_bar("Initializing", 1)
+    print()
+    
+    import string
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    
+    for i in range(5):
+        password = ''.join(random.choice(chars) for _ in range(16))
+        
+        print(f"  {Colors.CYAN}[{i+1}]{Colors.RESET} ", end="", flush=True)
+        for _ in range(3):
+            print(".", end="", flush=True)
+            time.sleep(0.2)
+        
+        print(f"\r  {Colors.GREEN}[{i+1}]{Colors.RESET} {Colors.BRIGHT}{password}{Colors.RESET}")
+        time.sleep(0.3)
+    
+    print(f"\n  {Colors.GREEN}✓ Complete{Colors.RESET}\n")
+    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
+
+def feature_rainbow():
+    """Rainbow text"""
+    clear()
+    
+    print(f"\n{Colors.CYAN}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.CYAN}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}  ║           🌈 RAINBOW TEXT EFFECT 🌈                ║{Colors.RESET}")
+    print(f"{Colors.CYAN}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.CYAN}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    text = input(f"  {Colors.CYAN}Enter text: {Colors.RESET}")
+    print()
+    
+    loading_bar("Applying", 1)
+    print()
+    
+    colors = [Colors.RED, Colors.YELLOW, Colors.GREEN, Colors.CYAN, Colors.MAGENTA]
+    
+    for round in range(20):
+        result = "  "
+        for i, char in enumerate(text):
+            color = colors[(i + round) % len(colors)]
+            result += f"{color}{Colors.BRIGHT}{char}{Colors.RESET}"
+        
+        print(f"\r{result}", end="", flush=True)
+        time.sleep(0.08)
+    
+    print(f"\n\n  {Colors.GREEN}✓ Complete{Colors.RESET}\n")
+    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
+
+def feature_rocket():
+    """Rocket launch"""
+    clear()
+    
+    print(f"\n{Colors.RED}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.RED}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.RED}{Colors.BRIGHT}  ║           🚀 ROCKET LAUNCH SEQUENCE 🚀             ║{Colors.RESET}")
+    print(f"{Colors.RED}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.RED}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    stages = ["Pre-launch", "Fuel loading", "Engine test", "Navigation", "Final prep"]
+    
+    for stage in stages:
+        loading_bar(stage, 0.8)
+        time.sleep(0.2)
+    
+    print(f"\n  {Colors.YELLOW}{Colors.BRIGHT}COUNTDOWN{Colors.RESET}\n")
+    time.sleep(0.5)
+    
+    for i in range(10, 0, -1):
+        print(f"\r  {Colors.RED}{Colors.BRIGHT}T-{i:02d}{Colors.RESET}", end="", flush=True)
+        time.sleep(0.5)
+    
+    print(f"\n\n  {Colors.RED}{Colors.BRIGHT}🚀 LIFTOFF! 🚀{Colors.RESET}\n")
+    
+    frames = ["    🚀", "   🚀 ", "  🚀  ", " 🚀   ", "🚀    "]
+    for _ in range(5):
+        for frame in frames:
+            print(f"\r  {frame}", end="", flush=True)
+            time.sleep(0.08)
+    
+    print(f"\n\n  {Colors.GREEN}✓ Success!{Colors.RESET}\n")
+    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
+
 def feature_sysinfo():
-    """System info - CLEAN"""
+    """System information"""
     clear()
     
     try:
         import psutil
-        has_psutil = True
     except ImportError:
-        has_psutil = False
-    
-    print(f"\n{Colors.MAGENTA}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║          🖥️  SYSTEM INFORMATION 🖥️                   ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
-    
-    if not has_psutil:
-        print(f"  {Colors.RED}✗ 'psutil' not installed!{Colors.RESET}")
-        print(f"  {Colors.YELLOW}Install with: pip install psutil{Colors.RESET}\n")
+        print(f"\n  {Colors.RED}✗ 'psutil' not installed{Colors.RESET}")
+        print(f"  {Colors.YELLOW}Install: pip install psutil{Colors.RESET}\n")
         input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
         return
     
-    loading_bar("Scanning system", 1.5)
+    print(f"\n{Colors.MAGENTA}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║          🖥️  SYSTEM INFORMATION 🖥️                 ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
+    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
+    
+    loading_bar("Scanning", 1.5)
     print()
     
     # System
@@ -467,18 +590,16 @@ def feature_sysinfo():
     
     # Disk
     print(f"  {Colors.CYAN}━━━ 💾 DISK ━━━{Colors.RESET}\n")
-    for part in psutil.disk_partitions()[:1]:
-        try:
-            usage = psutil.disk_usage(part.mountpoint)
-            print(f"  {Colors.GREEN}►{Colors.RESET} Device   : {Colors.CYAN}{part.device}{Colors.RESET}")
-            print(f"  {Colors.GREEN}►{Colors.RESET} Total    : {Colors.CYAN}{size(usage.total)}{Colors.RESET}")
-            print(f"  {Colors.GREEN}►{Colors.RESET} Free     : {Colors.CYAN}{size(usage.free)}{Colors.RESET}")
-            
-            disk_color = Colors.RED if usage.percent > 80 else Colors.YELLOW if usage.percent > 50 else Colors.GREEN
-            disk_bar = int(usage.percent / 2)
-            print(f"  {Colors.GREEN}►{Colors.RESET} Usage    : [{disk_color}{'█' * disk_bar}{'░' * (50 - disk_bar)}{Colors.RESET}] {disk_color}{usage.percent:.1f}%{Colors.RESET}\n")
-        except:
-            print(f"  {Colors.RED}✗ Access denied{Colors.RESET}\n")
+    try:
+        usage = psutil.disk_usage('/')
+        print(f"  {Colors.GREEN}►{Colors.RESET} Total    : {Colors.CYAN}{size(usage.total)}{Colors.RESET}")
+        print(f"  {Colors.GREEN}►{Colors.RESET} Free     : {Colors.CYAN}{size(usage.free)}{Colors.RESET}")
+        
+        disk_color = Colors.RED if usage.percent > 80 else Colors.YELLOW if usage.percent > 50 else Colors.GREEN
+        disk_bar = int(usage.percent / 2)
+        print(f"  {Colors.GREEN}►{Colors.RESET} Usage    : [{disk_color}{'█' * disk_bar}{'░' * (50 - disk_bar)}{Colors.RESET}] {disk_color}{usage.percent:.1f}%{Colors.RESET}\n")
+    except:
+        print(f"  {Colors.RED}✗ Access denied{Colors.RESET}\n")
     
     # Network
     print(f"  {Colors.CYAN}━━━ 🌐 NETWORK ━━━{Colors.RESET}\n")
@@ -488,7 +609,7 @@ def feature_sysinfo():
         print(f"  {Colors.GREEN}►{Colors.RESET} Hostname : {Colors.CYAN}{hostname}{Colors.RESET}")
         print(f"  {Colors.GREEN}►{Colors.RESET} IP       : {Colors.CYAN}{ip}{Colors.RESET}\n")
     except:
-        print(f"  {Colors.RED}✗ Network info unavailable{Colors.RESET}\n")
+        print(f"  {Colors.RED}✗ Network unavailable{Colors.RESET}\n")
     
     print(f"  {Colors.GREEN}{'─' * 52}{Colors.RESET}")
     print(f"  {Colors.GREEN}✓ Scan complete!{Colors.RESET}")
@@ -496,177 +617,65 @@ def feature_sysinfo():
     
     input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
 
-def feature_matrix():
-    """Matrix rain - SMOOTH"""
-    clear()
-    print(f"\n{Colors.GREEN}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║            🌧️  MATRIX DIGITAL RAIN 🌧️                ║{Colors.RESET}")
-    print(f"{Colors.GREEN}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.GREEN}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
-    
-    loading_bar("Loading Matrix protocol", 1.5)
-    print(f"\n  {Colors.DIM}Press Ctrl+C to exit...{Colors.RESET}\n")
-    time.sleep(0.8)
-    
-    chars = "ｱｲｳｴｵ01アイウABCDEF"
-    width = 54
-    height = 18
-    
-    try:
-        while True:
-            for _ in range(height):
-                line = "  " + "".join([
-                    f"{Colors.BRIGHT if random.random() > 0.92 else ''}{Colors.GREEN}{random.choice(chars)}{Colors.RESET}"
-                    for _ in range(width)
-                ])
-                print(line)
-                time.sleep(0.04)
-            
-            sys.stdout.write(f"\033[{height}A")
-    
-    except KeyboardInterrupt:
-        print(f"\n\n  {Colors.GREEN}✓ Matrix disconnected{Colors.RESET}\n")
-        time.sleep(1)
-
-def feature_password():
-    """Password generator"""
-    clear()
-    print(f"\n{Colors.MAGENTA}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║       🔐 QUANTUM PASSWORD GENERATOR 🔐             ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.MAGENTA}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
-    
-    loading_bar("Initializing quantum engine", 1.2)
-    print()
-    
-    import string
-    chars = string.ascii_letters + string.digits + "!@#$%^&*"
-    
-    for i in range(5):
-        password = ''.join(random.choice(chars) for _ in range(16))
-        
-        print(f"  {Colors.CYAN}[{i+1}]{Colors.RESET} Generating", end="")
-        for _ in range(3):
-            print(".", end="", flush=True)
-            time.sleep(0.2)
-        
-        print(f"\r  {Colors.GREEN}[{i+1}]{Colors.RESET} {Colors.BRIGHT}{password}{Colors.RESET}")
-        time.sleep(0.3)
-    
-    print(f"\n  {Colors.GREEN}✓ Generation complete{Colors.RESET}\n")
-    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
-
-def feature_rainbow():
-    """Rainbow text"""
-    clear()
-    
-    print(f"\n{Colors.CYAN}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.CYAN}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.CYAN}  ║           🌈 RAINBOW TEXT EFFECT 🌈                ║{Colors.RESET}")
-    print(f"{Colors.CYAN}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.CYAN}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
-    
-    text = input(f"  {Colors.CYAN}Enter text: {Colors.RESET}")
-    print()
-    
-    loading_bar("Applying effect", 1)
-    print()
-    
-    colors = [Colors.RED, Colors.YELLOW, Colors.GREEN, Colors.CYAN, Colors.BLUE, Colors.MAGENTA]
-    
-    for round in range(20):
-        result = "  "
-        for i, char in enumerate(text):
-            color = colors[(i + round) % len(colors)]
-            result += f"{color}{Colors.BRIGHT}{char}{Colors.RESET}"
-        
-        print(f"\r{result}", end="", flush=True)
-        time.sleep(0.08)
-    
-    print(f"\n\n  {Colors.GREEN}✓ Complete{Colors.RESET}\n")
-    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
-
-def feature_rocket():
-    """Rocket launch"""
-    clear()
-    print(f"\n{Colors.RED}{Colors.BRIGHT}  ╔════════════════════════════════════════════════════╗{Colors.RESET}")
-    print(f"{Colors.RED}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.RED}{Colors.BRIGHT}  ║           🚀 ROCKET LAUNCH SEQUENCE 🚀             ║{Colors.RESET}")
-    print(f"{Colors.RED}{Colors.BRIGHT}  ║                                                    ║{Colors.RESET}")
-    print(f"{Colors.RED}{Colors.BRIGHT}  ╚════════════════════════════════════════════════════╝{Colors.RESET}\n")
-    
-    stages = [
-        "Pre-launch check",
-        "Fuel loading",
-        "Engine test",
-        "Navigation online",
-        "Final prep"
-    ]
-    
-    for stage in stages:
-        loading_bar(stage, 0.8)
-        time.sleep(0.2)
-    
-    print(f"\n  {Colors.YELLOW}{Colors.BRIGHT}COUNTDOWN INITIATED{Colors.RESET}\n")
-    time.sleep(0.5)
-    
-    for i in range(10, 0, -1):
-        print(f"\r  {Colors.RED}{Colors.BRIGHT}T-{i:02d}{Colors.RESET}", end="", flush=True)
-        time.sleep(0.5)
-    
-    print(f"\n\n  {Colors.RED}{Colors.BRIGHT}🚀 LIFTOFF! 🚀{Colors.RESET}\n")
-    
-    frames = ["    🚀", "   🚀 ", "  🚀  ", " 🚀   ", "🚀    "]
-    for _ in range(5):
-        for frame in frames:
-            print(f"\r  {frame}", end="", flush=True)
-            time.sleep(0.08)
-    
-    print(f"\n\n  {Colors.GREEN}✓ Launch successful!{Colors.RESET}\n")
-    input(f"  {Colors.DIM}Press Enter...{Colors.RESET}")
-
 def main():
     """Main program"""
     try:
-        # Check dependencies FIRST
-        check_and_install_dependencies()
+        # Check dependencies
+        check_dependencies()
         
         # Show banner
         show_banner()
         
         # Main loop
         while True:
-            choice = menu_selection()
+            show_menu()
             
-            if choice == "exit":
-                clear()
-                print(f"\n  {Colors.CYAN}Shutting down...{Colors.RESET}\n")
-                loading_bar("Disconnecting", 1.2)
-                print(f"\n  {Colors.GREEN}✓ Goodbye! 👋{Colors.RESET}\n")
-                break
-            elif choice == "matrix":
-                feature_matrix()
-            elif choice == "crypto":
-                feature_crypto()
-            elif choice == "password":
-                feature_password()
-            elif choice == "rainbow":
-                feature_rainbow()
-            elif choice == "rocket":
-                feature_rocket()
-            elif choice == "sysinfo":
-                feature_sysinfo()
-            else:
-                clear()
-                print(f"\n  {Colors.YELLOW}⚠ Under development{Colors.RESET}\n")
+            try:
+                choice = input(f"  {Colors.CYAN}root@tentor:~# {Colors.RESET}").strip()
+                
+                if choice == "1":
+                    feature_matrix()
+                elif choice == "2":
+                    feature_crypto()
+                elif choice == "3":
+                    feature_password()
+                elif choice == "4":
+                    feature_rainbow()
+                elif choice == "5":
+                    feature_rocket()
+                elif choice == "6":
+                    feature_sysinfo()
+                elif choice == "7":
+                    # Download tools menu
+                    while True:
+                        download_menu()
+                        dl_choice = input(f"  {Colors.CYAN}Select [1-2]: {Colors.RESET}").strip()
+                        
+                        if dl_choice == "1":
+                            download_xworld()
+                        elif dl_choice == "2":
+                            break
+                        else:
+                            print(f"  {Colors.RED}✗ Invalid!{Colors.RESET}")
+                            time.sleep(1)
+                elif choice == "8":
+                    clear()
+                    print(f"\n  {Colors.CYAN}Shutting down...{Colors.RESET}\n")
+                    loading_bar("Disconnecting", 1)
+                    print(f"\n  {Colors.GREEN}✓ Goodbye! 👋{Colors.RESET}\n")
+                    break
+                else:
+                    print(f"  {Colors.RED}✗ Invalid option!{Colors.RESET}")
+                    time.sleep(1)
+            
+            except KeyboardInterrupt:
+                print(f"\n  {Colors.YELLOW}Use option 8 to exit{Colors.RESET}")
                 time.sleep(1)
     
     except KeyboardInterrupt:
         clear()
         print(f"\n  {Colors.RED}✗ Shutdown{Colors.RESET}\n")
-        time.sleep(0.8)
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
