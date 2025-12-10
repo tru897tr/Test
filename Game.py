@@ -405,6 +405,111 @@ class Game:
             
             if player_hp > 0:
                 clear_screen()
+                print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.OKGREEN + "║" + " " * 28 + "🎉 CHIẾN THẮNG!" + " " * 27 + "║" + Colors.ENDC)
+                print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                print(f"\n💰 +{monster['reward']} coins")
+                print(f"✨ +50 EXP")
+                
+                self.data["coins"] += monster["reward"]
+                self.data["exp"] += 50
+                self.data["stats"]["total_coins_earned"] += monster["reward"]
+                self.data["stats"]["battles_won"] += 1
+                
+                if self.data["exp"] >= 100:
+                    self.data["level"] += 1
+                    self.data["exp"] -= 100
+                    print(f"\n{Colors.WARNING}🎊 LEVEL UP! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                
+                self.save_data()
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+            else:
+                clear_screen()
+                print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.FAIL + "║" + " " * 28 + "💀 BẠN ĐÃ THUA!" + " " * 28 + "║" + Colors.ENDC)
+                print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                
+        except Exception as e:
+            self.show_error("Lỗi trong chiến đấu", e)
+    
+    def run(self):
+        """Chạy game"""
+        try:
+            clear_screen()
+            print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
+            print_with_effect("🎮 CHÀO MỪNG ĐÃ ĐẾN VỚI GAME PHIÊU LƯU!", 0.03, Colors.BOLD)
+            print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
+            time.sleep(1)
+            
+            while True:
+                clear_screen()
+                print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.OKCYAN + "║" + " " * 29 + "MENU CHÍNH" + " " * 29 + "║" + Colors.ENDC)
+                print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                
+                print(f"\n💰 Coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC} | ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} | 🔥 Streak: {Colors.WARNING}{self.data['daily_streak']}{Colors.ENDC}")
+                print("\n1. 📊 Xem thông tin")
+                print("2. 🏪 Cửa hàng")
+                print("3. ⚔️  Chiến đấu")
+                print("4. 🎁 Nhận daily")
+                print("5. 🎣 Săn bắt")
+                print("6. 🦁 Sở thú")
+                print("0. 🚪 Thoát game")
+                
+                choice = input(f"\n{Colors.OKCYAN}👉 Nhập lựa chọn: {Colors.ENDC}").strip().lower()
+                
+                if choice == "1":
+                    self.show_stats()
+                elif choice == "2":
+                    self.shop()
+                elif choice == "3":
+                    self.battle()
+                elif choice in ["4", "odaily", "owo daily", "daily"]:
+                    self.check_daily_reward()
+                elif choice in ["5", "oh", "owo hunt", "hunt"]:
+                    self.hunt_animal()
+                elif choice in ["6", "ozoo", "owo zoo", "zoo"]:
+                    self.show_zoo()
+                elif choice == "0":
+                    clear_screen()
+                    print_with_effect("👋 Tạm biệt! Hẹn gặp lại!", 0.03, Colors.OKGREEN)
+                    self.save_data()
+                    time.sleep(1)
+                    break
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(1)
+                    
+        except KeyboardInterrupt:
+            clear_screen()
+            print(f"\n{Colors.WARNING}⚠️  Game bị gián đoạn!{Colors.ENDC}")
+            self.save_data()
+            sys.exit(0)
+        except Exception as e:
+            self.show_error("Lỗi nghiêm trọng trong game", e)
+            sys.exit(1)
+
+if __name__ == "__main__":
+    # Kiểm tra hệ thống trước khi chạy
+    check_requirements()
+    clear_screen()
+    
+    # Chạy game
+    game = Game()
+    game.run()monster['name']} phản công gây {enemy_damage} sát thương!{Colors.ENDC}")
+                        time.sleep(0.5)
+                elif choice == "2":
+                    print(f"\n{Colors.WARNING}🏃 Bạn đã bỏ chạy!{Colors.ENDC}")
+                    time.sleep(1)
+                    return
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(0.5)
+                    continue
+            
+            if player_hp > 0:
+                clear_screen()
                 print(Colors.OKGREEN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
                 print(Colors.OKGREEN + "║" + " " * 22 + "🎉 CHIẾN THẮNG!" + " " * 21 + "║" + Colors.ENDC)
                 print(Colors.OKGREEN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
