@@ -97,6 +97,11 @@ class Game:
                     # Đảm bảo có trường zoo
                     if "zoo" not in data:
                         data["zoo"] = {}
+                    # Đảm bảo có trường animals_caught trong stats
+                    if "stats" not in data:
+                        data["stats"] = {}
+                    if "animals_caught" not in data["stats"]:
+                        data["stats"]["animals_caught"] = 0
                     return data
             except Exception as e:
                 self.show_error("Không thể đọc file dữ liệu", e)
