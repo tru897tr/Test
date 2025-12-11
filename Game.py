@@ -33,77 +33,6 @@ ANIMALS = {
     ]
 }
 
-def check_requirements():
-    """Kiểm tra yêu cầu hệ thống trước khi chạy game"""
-    print(Colors.OKCYAN + "=" * 70 + Colors.ENDC)
-    print(Colors.BOLD + "🔍 ĐANG KIỂM TRA HỆ THỐNG..." + Colors.ENDC)
-    print(Colors.OKCYAN + "=" * 70 + Colors.ENDC)
-    
-    issues = []
-    
-    # Kiểm tra Python version
-    print("\n📌 Kiểm tra Python version...", end=" ")
-    if sys.version_info < (3, 6):
-        issues.append("Python version quá cũ (cần >= 3.6)")
-        print(Colors.FAIL + "❌" + Colors.ENDC)
-    else:
-        print(Colors.OKGREEN + f"✓ Python {sys.version_info.major}.{sys.version_info.minor}" + Colors.ENDC)
-    
-    # Kiểm tra thư viện cần thiết
-    required_modules = ['json', 'os', 'datetime', 'random', 'time', 'traceback', 'sys']
-    print("📌 Kiểm tra thư viện cần thiết...", end=" ")
-    missing_modules = []
-    for module in required_modules:
-        try:
-            __import__(module)
-        except ImportError:
-            missing_modules.append(module)
-    
-    if missing_modules:
-        issues.append(f"Thiếu thư viện: {', '.join(missing_modules)}")
-        print(Colors.FAIL + "❌" + Colors.ENDC)
-    else:
-        print(Colors.OKGREEN + "✓ Đầy đủ" + Colors.ENDC)
-    
-    # Kiểm tra quyền ghi file
-    print("📌 Kiểm tra quyền ghi file...", end=" ")
-    try:
-        test_file = "test_write_permission.tmp"
-        with open(test_file, 'w') as f:
-            f.write("test")
-        os.remove(test_file)
-        print(Colors.OKGREEN + "✓ OK" + Colors.ENDC)
-    except:
-        issues.append("Không có quyền ghi file trong thư mục hiện tại")
-        print(Colors.FAIL + "❌" + Colors.ENDC)
-    
-    # Kiểm tra màn hình terminal
-    print("📌 Kiểm tra kích thước terminal...", end=" ")
-    try:
-        cols = os.get_terminal_size().columns
-        if cols < 70:
-            issues.append(f"Terminal quá nhỏ (hiện tại: {cols}, cần ít nhất 70)")
-            print(Colors.WARNING + f"⚠ {cols} cols" + Colors.ENDC)
-        else:
-            print(Colors.OKGREEN + f"✓ {cols} cols" + Colors.ENDC)
-    except:
-        print(Colors.WARNING + "⚠ Không xác định được" + Colors.ENDC)
-    
-    print(Colors.OKCYAN + "=" * 70 + Colors.ENDC)
-    
-    if issues:
-        print(Colors.FAIL + "\n⚠️  PHÁT HIỆN VẤN ĐỀ:" + Colors.ENDC)
-        for issue in issues:
-            print(f"   • {issue}")
-        print("\n" + Colors.WARNING + "Game có thể không hoạt động đúng!" + Colors.ENDC)
-        choice = input("\nBạn có muốn tiếp tục? (y/n): ").strip().lower()
-        if choice != 'y':
-            print(Colors.FAIL + "Đã hủy chạy game." + Colors.ENDC)
-            sys.exit(0)
-    else:
-        print(Colors.OKGREEN + "\n✅ HỆ THỐNG SẴN SÀNG!" + Colors.ENDC)
-        time.sleep(1)
-
 def clear_screen():
     """Xóa màn hình để gọn gàng"""
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -115,21 +44,12 @@ def print_with_effect(text, delay=0.02, color=""):
         time.sleep(delay)
     print()
 
-def print_box(text, color=Colors.OKCYAN, width=70):
-    """In text trong box đẹp với căn chỉnh đúng"""
-    lines = text.split('\n')
-    
+def print_box(text, color=Colors.OKCYAN, width=60):
+    """In text trong box đẹp"""
     print(color + "╔" + "═" * (width - 2) + "╗" + Colors.ENDC)
+    lines = text.split('\n')
     for line in lines:
-        # Loại bỏ các ký tự màu để tính độ dài thực
-        clean_line = line
-        for color_code in [Colors.HEADER, Colors.OKBLUE, Colors.OKCYAN, Colors.OKGREEN, 
-                          Colors.WARNING, Colors.FAIL, Colors.ENDC, Colors.BOLD, Colors.UNDERLINE, Colors.GRAY]:
-            clean_line = clean_line.replace(color_code, '')
-        
-        padding = width - len(clean_line) - 4
-        if padding < 0:
-            padding = 0
+        padding = width - len(line) - 4
         print(color + "║ " + Colors.ENDC + line + " " * padding + color + " ║" + Colors.ENDC)
     print(color + "╚" + "═" * (width - 2) + "╝" + Colors.ENDC)
 
@@ -155,17 +75,17 @@ class Game:
     def show_error(self, message, error):
         """Hiển thị lỗi chi tiết với debug info"""
         clear_screen()
-        print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-        print(Colors.FAIL + "║" + " " * 24 + "⚠️  LỖI HỆ THỐNG  ⚠️" + " " * 23 + "║" + Colors.ENDC)
-        print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+        print(Colors.FAIL + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+        print(Colors.FAIL + "║" + " " * 20 + "⚠️  LỖI HỆ THỐNG  ⚠️" + " " * 19 + "║" + Colors.ENDC)
+        print(Colors.FAIL + "╚" + "═" * 58 + "╝" + Colors.ENDC)
         print(f"\n{Colors.BOLD}Mô tả lỗi:{Colors.ENDC} {message}")
         print(f"{Colors.BOLD}Loại lỗi:{Colors.ENDC} {type(error).__name__}")
         print(f"{Colors.BOLD}Chi tiết:{Colors.ENDC} {str(error)}")
-        print(f"\n{Colors.GRAY}{'='*70}")
+        print(f"\n{Colors.GRAY}{'='*60}")
         print("DEBUG TRACEBACK:")
-        print('='*70)
+        print('='*60)
         traceback.print_exc()
-        print('='*70 + Colors.ENDC)
+        print('='*60 + Colors.ENDC)
         input(f"\n{Colors.WARNING}Nhấn Enter để tiếp tục...{Colors.ENDC}")
         
     def load_data(self):
@@ -174,17 +94,14 @@ class Game:
             try:
                 with open(DATA_FILE, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    # Đảm bảo có đầy đủ các trường
+                    # Đảm bảo có trường zoo
                     if "zoo" not in data:
                         data["zoo"] = {}
+                    # Đảm bảo có trường animals_caught trong stats
                     if "stats" not in data:
                         data["stats"] = {}
                     if "animals_caught" not in data["stats"]:
                         data["stats"]["animals_caught"] = 0
-                    if "daily_streak" not in data:
-                        data["daily_streak"] = 0
-                    if "total_daily_collected" not in data:
-                        data["total_daily_collected"] = 0
                     return data
             except Exception as e:
                 self.show_error("Không thể đọc file dữ liệu", e)
@@ -197,14 +114,12 @@ class Game:
     def create_new_data(self):
         """Tạo dữ liệu mới cho người chơi"""
         return {
-            "coins": 100,
+            "coins": 100,  # Cho sẵn 100 coins để bắt đầu
             "level": 1,
             "exp": 0,
             "last_daily": None,
-            "daily_streak": 0,
-            "total_daily_collected": 0,
             "inventory": [],
-            "zoo": {},
+            "zoo": {},  # Lưu động vật đã săn: {"bee": 3, "dragon": 1}
             "stats": {
                 "total_coins_earned": 0,
                 "days_played": 0,
@@ -222,23 +137,6 @@ class Game:
         except Exception as e:
             self.show_error("Lỗi khi lưu dữ liệu", e)
     
-    def get_daily_rewards(self, streak):
-        """Tính toán phần thưởng dựa trên streak"""
-        if 1 <= streak <= 20:
-            coins = random.randint(100, 500)
-            exp = random.uniform(1, 5)
-        elif 21 <= streak <= 60:
-            coins = random.randint(450, 1200)
-            exp = random.uniform(4.5, 10)
-        elif 61 <= streak <= 74:
-            coins = random.randint(1150, 2500)
-            exp = random.uniform(9.85, 19)
-        else:  # 75+
-            coins = random.randint(2450, 3500)
-            exp = random.uniform(20, 29.5)
-        
-        return coins, round(exp, 2)
-    
     def check_daily_reward(self):
         """Kiểm tra và nhận phần thưởng hàng ngày"""
         try:
@@ -249,71 +147,33 @@ class Game:
                 last_time = datetime.fromisoformat(last_daily)
                 time_diff = now - last_time
                 
-                # Nếu chưa đủ 24 giờ
                 if time_diff < timedelta(hours=24):
                     remaining = timedelta(hours=24) - time_diff
                     hours = remaining.seconds // 3600
                     minutes = (remaining.seconds % 3600) // 60
                     
                     clear_screen()
-                    msg = f"⏰ Bạn đã nhận daily rồi!\n⏳ Quay lại sau {hours} giờ {minutes} phút"
-                    print_box(msg, Colors.WARNING)
+                    print_box(f"⏰ Bạn đã nhận daily rồi!\n⏳ Quay lại sau {hours} giờ {minutes} phút", Colors.WARNING)
                     input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
                     return False
-                
-                # Nếu quá 48 giờ thì reset streak
-                if time_diff > timedelta(hours=48):
-                    self.data["daily_streak"] = 0
             
             loading_animation("Đang xử lý daily reward", 1)
             
-            # Tăng streak
-            self.data["daily_streak"] += 1
-            streak = self.data["daily_streak"]
-            
-            # Tính phần thưởng
-            coins, exp = self.get_daily_rewards(streak)
-            
-            # Cập nhật dữ liệu
-            self.data["coins"] += coins
-            self.data["exp"] += exp
-            self.data["stats"]["total_coins_earned"] += coins
+            # Nhận thưởng
+            self.data["coins"] += 1000
+            self.data["stats"]["total_coins_earned"] += 1000
             self.data["stats"]["days_played"] += 1
-            self.data["total_daily_collected"] += 1
             self.data["last_daily"] = now.isoformat()
-            
-            # Check level up
-            level_up = False
-            while self.data["exp"] >= 100:
-                self.data["level"] += 1
-                self.data["exp"] -= 100
-                level_up = True
-            
             self.save_data()
             
             clear_screen()
-            print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKGREEN + "║" + " " * 20 + "🎁 PHẦN THƯỞNG HÀNG NGÀY 🎁" + " " * 21 + "║" + Colors.ENDC)
-            print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
-            
-            print(f"\n{Colors.BOLD}✨ Phần thưởng nhận được:{Colors.ENDC}")
-            print(f"   💰 Coins: {Colors.OKGREEN}+{coins}{Colors.ENDC}")
-            print(f"   ⭐ EXP: {Colors.OKCYAN}+{exp}{Colors.ENDC}")
-            print(f"\n{Colors.BOLD}📊 Thông tin streak:{Colors.ENDC}")
-            print(f"   🔥 Streak hiện tại: {Colors.WARNING}{streak} ngày{Colors.ENDC}")
-            print(f"   📅 Tổng số lần nhận: {self.data['total_daily_collected']}")
-            print(f"   🎯 Lần nhận tiếp theo: Ngày thứ {streak + 1}")
-            print(f"\n{Colors.BOLD}💼 Trạng thái tài khoản:{Colors.ENDC}")
-            print(f"   💰 Tổng coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}")
-            print(f"   ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC}")
-            print(f"   ✨ EXP: {Colors.BOLD}{self.data['exp']:.2f}/100{Colors.ENDC}")
-            
-            if level_up:
-                print(f"\n{Colors.WARNING}🎊 LEVEL UP! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
-            
+            print(Colors.OKGREEN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(Colors.OKGREEN + "║" + " " * 16 + "🎁 PHẦN THƯỞNG HÀNG NGÀY 🎁" + " " * 15 + "║" + Colors.ENDC)
+            print(Colors.OKGREEN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
+            print_with_effect(f"\n✨ Bạn đã nhận: {Colors.BOLD}+1000 coins!{Colors.ENDC}", 0.03, Colors.OKGREEN)
+            print(f"💰 Tổng coins hiện tại: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}")
             input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
             return True
-            
         except Exception as e:
             self.show_error("Lỗi khi nhận daily reward", e)
             return False
@@ -330,7 +190,7 @@ class Game:
             self.data["coins"] -= 5
             loading_animation("Đang săn bắt", 1.5)
             
-            # Chọn động vật ngẫu nhiên
+            # Chọn động vật ngẫu nhiên dựa trên tỷ lệ
             all_animals = []
             for rarity, animals in ANIMALS.items():
                 for animal in animals:
@@ -341,7 +201,7 @@ class Game:
             animal_emoji = caught_animal["emoji"]
             
             # Tìm rarity
-            rarity = "Common"
+            rarity = ""
             for r, animals in ANIMALS.items():
                 if any(a["name"] == animal_name for a in animals):
                     rarity = r
@@ -366,15 +226,13 @@ class Game:
             }
             color = rarity_colors.get(rarity, Colors.ENDC)
             
-            print(color + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(color + "║" + " " * 24 + "🎣 SĂN BẮT THÀNH CÔNG!" + " " * 23 + "║" + Colors.ENDC)
-            print(color + "╚" + "═" * 68 + "╝" + Colors.ENDC)
-            
+            print(color + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(color + "║" + " " * 20 + "🎣 SĂN BẮT THÀNH CÔNG!" + " " * 18 + "║" + Colors.ENDC)
+            print(color + "╚" + "═" * 58 + "╝" + Colors.ENDC)
             print(f"\n{animal_emoji} Bạn đã bắt được: {Colors.BOLD}{animal_name.upper()}{Colors.ENDC}")
             print(f"✨ Độ hiếm: {color}{rarity}{Colors.ENDC}")
             print(f"📊 Số lượng hiện có: {Colors.BOLD}{self.data['zoo'][animal_name]}{Colors.ENDC}")
             print(f"💰 Coins còn lại: {self.data['coins']}")
-            
             input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
             
         except Exception as e:
@@ -384,12 +242,16 @@ class Game:
         """Hiển thị sở thú"""
         try:
             clear_screen()
-            print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKCYAN + "║" + " " * 30 + "🦁 SỞ THÚ 🦁" + " " * 27 + "║" + Colors.ENDC)
-            print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            print(Colors.OKCYAN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(Colors.OKCYAN + "║" + " " * 24 + "🦁 SỞ THÚ 🦁" + " " * 23 + "║" + Colors.ENDC)
+            print(Colors.OKCYAN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
             
             rarity_colors = {
-                "Common": Colors.GRAY
+                "Common": Colors.GRAY,
+                "Uncommon": Colors.OKGREEN,
+                "Rare": Colors.OKBLUE,
+                "Epic": Colors.HEADER,
+                "Legendary": Colors.WARNING
             }
             
             total_unique = len(self.data["zoo"])
@@ -400,9 +262,9 @@ class Game:
             
             for rarity, animals in ANIMALS.items():
                 color = rarity_colors.get(rarity, Colors.ENDC)
-                print(f"{color}{'─' * 70}{Colors.ENDC}")
+                print(f"{color}{'─' * 60}{Colors.ENDC}")
                 print(f"{color}{Colors.BOLD}✨ {rarity.upper()}{Colors.ENDC}")
-                print(f"{color}{'─' * 70}{Colors.ENDC}")
+                print(f"{color}{'─' * 60}{Colors.ENDC}")
                 
                 for animal in animals:
                     name = animal["name"]
@@ -410,9 +272,9 @@ class Game:
                     
                     if name in self.data["zoo"]:
                         count = self.data["zoo"][name]
-                        print(f"  {emoji} {name.capitalize():<20} x{count}")
+                        print(f"  {emoji} {name.capitalize():<15} x{count}")
                     else:
-                        print(f"  ❓ {'?':<20} x0 {Colors.GRAY}(Chưa bắt được){Colors.ENDC}")
+                        print(f"  ❓ {'?':<15} x0 {Colors.GRAY}(Chưa bắt được){Colors.ENDC}")
                 print()
             
             input(f"{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
@@ -424,25 +286,23 @@ class Game:
         """Hiển thị thông tin người chơi"""
         try:
             clear_screen()
-            print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKCYAN + "║" + " " * 22 + "📊 THÔNG TIN NGƯỜI CHƠI" + " " * 23 + "║" + Colors.ENDC)
-            print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            print(Colors.OKCYAN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(Colors.OKCYAN + "║" + " " * 18 + "📊 THÔNG TIN NGƯỜI CHƠI" + " " * 17 + "║" + Colors.ENDC)
+            print(Colors.OKCYAN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
             
-            exp_percent = (self.data['exp'] / 100) * 30
-            exp_bar = "█" * int(exp_percent) + "░" * (30 - int(exp_percent))
+            exp_percent = (self.data['exp'] / 100) * 20
+            exp_bar = "█" * int(exp_percent) + "░" * (20 - int(exp_percent))
             
             print(f"\n💰 Coins: {Colors.BOLD}{Colors.OKGREEN}{self.data['coins']}{Colors.ENDC}")
             print(f"⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC}")
-            print(f"✨ EXP: [{exp_bar}] {self.data['exp']:.2f}/100")
+            print(f"✨ EXP: [{exp_bar}] {self.data['exp']}/100")
             print(f"🎒 Túi đồ: {len(self.data['inventory'])} vật phẩm")
-            print(f"🔥 Daily Streak: {Colors.WARNING}{self.data['daily_streak']} ngày{Colors.ENDC}")
             
             print(f"\n{Colors.BOLD}📈 THỐNG KÊ:{Colors.ENDC}")
             print(f"  • Tổng coins kiếm được: {self.data['stats']['total_coins_earned']}")
             print(f"  • Số ngày chơi: {self.data['stats']['days_played']}")
             print(f"  • Trận thắng: {self.data['stats']['battles_won']}")
             print(f"  • Động vật đã bắt: {self.data['stats']['animals_caught']}")
-            print(f"  • Tổng lần nhận daily: {self.data['total_daily_collected']}")
             
             input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
             
@@ -460,9 +320,9 @@ class Game:
             }
             
             clear_screen()
-            print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKGREEN + "║" + " " * 29 + "🏪 CỬA HÀNG" + " " * 28 + "║" + Colors.ENDC)
-            print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            print(Colors.OKGREEN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(Colors.OKGREEN + "║" + " " * 24 + "🏪 CỬA HÀNG" + " " * 23 + "║" + Colors.ENDC)
+            print(Colors.OKGREEN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
             print(f"\n💰 Coins của bạn: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}\n")
             
             for key, item in items.items():
@@ -505,19 +365,158 @@ class Game:
             max_monster_hp = monster["hp"]
             
             clear_screen()
-            print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.FAIL + "║" + f"  ⚔️  BẮT GẶP {monster['name'].upper()}! {monster['emoji']}" + " " * (58 - len(monster['name'])) + "║" + Colors.ENDC)
-            print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            print(Colors.FAIL + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+            print(Colors.FAIL + "║" + f"  ⚔️  BẮT GẶP {monster['name'].upper()}! {monster['emoji']}" + " " * (50 - len(monster['name'])) + "║" + Colors.ENDC)
+            print(Colors.FAIL + "╚" + "═" * 58 + "╝" + Colors.ENDC)
             
             while monster["hp"] > 0 and player_hp > 0:
                 # Thanh HP
-                monster_hp_percent = (monster["hp"] / max_monster_hp) * 40
-                monster_hp_bar = "█" * int(monster_hp_percent) + "░" * (40 - int(monster_hp_percent))
-                player_hp_percent = (player_hp / 100) * 40
-                player_hp_bar = "█" * int(player_hp_percent) + "░" * (40 - int(player_hp_percent))
+                monster_hp_percent = (monster["hp"] / max_monster_hp) * 30
+                monster_hp_bar = "█" * int(monster_hp_percent) + "░" * (30 - int(monster_hp_percent))
+                player_hp_percent = (player_hp / 100) * 30
+                player_hp_bar = "█" * int(player_hp_percent) + "░" * (30 - int(player_hp_percent))
                 
                 print(f"\n👹 {monster['name']} HP: [{Colors.FAIL}{monster_hp_bar}{Colors.ENDC}] {monster['hp']}/{max_monster_hp}")
                 print(f"👤 Your HP:      [{Colors.OKGREEN}{player_hp_bar}{Colors.ENDC}] {player_hp}/100")
+                
+                print(f"\n1. ⚔️  Tấn công")
+                print(f"2. 🏃 Bỏ chạy")
+                choice = input(f"\n{Colors.OKCYAN}👉 Chọn hành động: {Colors.ENDC}").strip()
+                
+                if choice == "1":
+                    damage = random.randint(15, 30)
+                    monster["hp"] -= damage
+                    print(f"\n{Colors.OKGREEN}⚔️  Bạn gây {damage} sát thương!{Colors.ENDC}")
+                    time.sleep(0.5)
+                    
+                    if monster["hp"] > 0:
+                        enemy_damage = random.randint(10, 20)
+                        player_hp -= enemy_damage
+                        print(f"{Colors.FAIL}💥 {monster['name']} phản công gây {enemy_damage} sát thương!{Colors.ENDC}")
+                        time.sleep(0.5)
+                elif choice == "2":
+                    print(f"\n{Colors.WARNING}🏃 Bạn đã bỏ chạy!{Colors.ENDC}")
+                    time.sleep(1)
+                    return
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(0.5)
+                    continue
+            
+            if player_hp > 0:
+                clear_screen()
+                print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.OKGREEN + "║" + " " * 28 + "🎉 CHIẾN THẮNG!" + " " * 27 + "║" + Colors.ENDC)
+                print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                print(f"\n💰 +{monster['reward']} coins")
+                print(f"✨ +50 EXP")
+                
+                self.data["coins"] += monster["reward"]
+                self.data["exp"] += 50
+                self.data["stats"]["total_coins_earned"] += monster["reward"]
+                self.data["stats"]["battles_won"] += 1
+                
+                # Check level up
+                level_up_count = 0
+                exp_needed = self.get_exp_needed(self.data['level'])
+                while self.data["exp"] >= exp_needed:
+                    self.data["level"] += 1
+                    self.data["exp"] -= exp_needed
+                    level_up_count += 1
+                    exp_needed = self.get_exp_needed(self.data['level'])
+                
+                if level_up_count > 0:
+                    print(f"\n{Colors.WARNING}🎊 LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                
+                self.save_data()
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+            else:
+                clear_screen()
+                print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.FAIL + "║" + " " * 28 + "💀 BẠN ĐÃ THUA!" + " " * 28 + "║" + Colors.ENDC)
+                print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                
+        except Exception as e:
+            self.show_error("Lỗi trong chiến đấu", e)
+    
+    def run(self):
+        """Chạy game"""
+        try:
+            clear_screen()
+            print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
+            print_with_effect("🎮 CHÀO MỪNG ĐÃ ĐẾN VỚI GAME PHIÊU LƯU!", 0.03, Colors.BOLD)
+            print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
+            time.sleep(1)
+            
+            while True:
+                try:
+                    clear_screen()
+                    exp_percent = self.get_exp_percent()
+                    print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.OKCYAN + "║" + " " * 29 + "MENU CHÍNH" + " " * 29 + "║" + Colors.ENDC)
+                    print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    print(f"\n💰 Coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC} | ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} ({exp_percent:.1f}%) | 🔥 Streak: {Colors.WARNING}{self.data['daily_streak']}{Colors.ENDC}")
+                    print("\n1. 📊 Xem thông tin")
+                    print("2. 🏪 Cửa hàng")
+                    print("3. ⚔️  Chiến đấu")
+                    print("4. 🎁 Nhận daily")
+                    print("5. 🎣 Săn bắt")
+                    print("6. 🦁 Sở thú")
+                    print("0. 🚪 Thoát game")
+                    
+                    choice = input(f"\n{Colors.OKCYAN}👉 Nhập lựa chọn: {Colors.ENDC}").strip().lower()
+                    
+                    if choice == "1":
+                        self.show_stats()
+                    elif choice == "2":
+                        self.shop()
+                    elif choice == "3":
+                        self.battle()
+                    elif choice in ["4", "odaily", "owo daily", "daily"]:
+                        self.check_daily_reward()
+                    elif choice in ["5", "oh", "owo hunt", "hunt"]:
+                        self.hunt_animal()
+                    elif choice in ["6", "ozoo", "owo zoo", "zoo"]:
+                        self.show_zoo()
+                    elif choice == "0":
+                        clear_screen()
+                        print_with_effect("👋 Tạm biệt! Hẹn gặp lại!", 0.03, Colors.OKGREEN)
+                        self.save_data()
+                        time.sleep(1)
+                        break
+                    else:
+                        print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                        time.sleep(1)
+                except Exception as e:
+                    self.show_error("Lỗi trong menu", e)
+                    time.sleep(1)
+                    
+        except KeyboardInterrupt:
+            clear_screen()
+            print(f"\n{Colors.WARNING}⚠️  Game bị gián đoạn!{Colors.ENDC}")
+            self.save_data()
+            sys.exit(0)
+        except Exception as e:
+            self.show_error("Lỗi nghiêm trọng trong game", e)
+            time.sleep(2)
+
+if __name__ == "__main__":
+    try:
+        # Kiểm tra hệ thống trước khi chạy
+        check_requirements()
+        clear_screen()
+        
+        # Chạy game
+        game = Game()
+        game.run()
+    except Exception as e:
+        print(f"\n{Colors.FAIL}❌ Lỗi khởi động game:{Colors.ENDC}")
+        print(f"{type(e).__name__}: {str(e)}")
+        traceback.print_exc()
+        sys.exit(1){monster['name']} HP: [{Colors.FAIL}{monster_hp_bar}{Colors.ENDC}] {monster['hp']}/{max_monster_hp}")
+                print(f"👤 Your HP: [{Colors.OKGREEN}{player_hp_bar}{Colors.ENDC}] {player_hp}/100")
                 
                 print(f"\n1. ⚔️  Tấn công")
                 print(f"2. 🏃 Bỏ chạy")
@@ -636,5 +635,105 @@ if __name__ == "__main__":
     clear_screen()
     
     # Chạy game
+    game = Game()
+    game.run()monster['name']} phản công gây {enemy_damage} sát thương!{Colors.ENDC}")
+                        time.sleep(0.5)
+                elif choice == "2":
+                    print(f"\n{Colors.WARNING}🏃 Bạn đã bỏ chạy!{Colors.ENDC}")
+                    time.sleep(1)
+                    return
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(0.5)
+                    continue
+            
+            if player_hp > 0:
+                clear_screen()
+                print(Colors.OKGREEN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+                print(Colors.OKGREEN + "║" + " " * 22 + "🎉 CHIẾN THẮNG!" + " " * 21 + "║" + Colors.ENDC)
+                print(Colors.OKGREEN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
+                print(f"\n💰 +{monster['reward']} coins")
+                print(f"✨ +50 EXP")
+                
+                self.data["coins"] += monster["reward"]
+                self.data["exp"] += 50
+                self.data["stats"]["total_coins_earned"] += monster["reward"]
+                self.data["stats"]["battles_won"] += 1
+                
+                if self.data["exp"] >= 100:
+                    self.data["level"] += 1
+                    self.data["exp"] = 0
+                    print(f"\n{Colors.WARNING}🎊 LEVEL UP! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                
+                self.save_data()
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+            else:
+                clear_screen()
+                print(Colors.FAIL + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+                print(Colors.FAIL + "║" + " " * 22 + "💀 BẠN ĐÃ THUA!" + " " * 22 + "║" + Colors.ENDC)
+                print(Colors.FAIL + "╚" + "═" * 58 + "╝" + Colors.ENDC)
+                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                
+        except Exception as e:
+            self.show_error("Lỗi trong chiến đấu", e)
+    
+    def run(self):
+        """Chạy game"""
+        try:
+            clear_screen()
+            print_with_effect("=" * 60, 0.01, Colors.OKCYAN)
+            print_with_effect("🎮 CHÀO MỪNG ĐÃ ĐẾN VỚI GAME PHIÊU LƯU!", 0.03, Colors.BOLD)
+            print_with_effect("=" * 60, 0.01, Colors.OKCYAN)
+            time.sleep(1)
+            
+            while True:
+                clear_screen()
+                print(Colors.OKCYAN + "╔" + "═" * 58 + "╗" + Colors.ENDC)
+                print(Colors.OKCYAN + "║" + " " * 23 + "MENU CHÍNH" + " " * 25 + "║" + Colors.ENDC)
+                print(Colors.OKCYAN + "╚" + "═" * 58 + "╝" + Colors.ENDC)
+                
+                print(f"\n💰 Coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC} | ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC}")
+                print("\n1. 📊 Xem thông tin")
+                print("2. 🏪 Cửa hàng")
+                print("3. ⚔️  Chiến đấu")
+                print("4. 🎁 Nhận daily")
+                print("5. 🎣 Săn bắt")
+                print("6. 🦁 Sở thú")
+                print("0. 🚪 Thoát game")
+                
+                choice = input(f"\n{Colors.OKCYAN}👉 Nhập lựa chọn: {Colors.ENDC}").strip().lower()
+                
+                if choice == "1":
+                    self.show_stats()
+                elif choice == "2":
+                    self.shop()
+                elif choice == "3":
+                    self.battle()
+                elif choice in ["4", "odaily", "owo daily", "daily"]:
+                    self.check_daily_reward()
+                elif choice in ["5", "oh", "owo hunt", "hunt"]:
+                    self.hunt_animal()
+                elif choice in ["6", "ozoo", "owo zoo", "zoo"]:
+                    self.show_zoo()
+                elif choice == "0":
+                    clear_screen()
+                    print_with_effect("👋 Tạm biệt! Hẹn gặp lại!", 0.03, Colors.OKGREEN)
+                    self.save_data()
+                    time.sleep(1)
+                    break
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(1)
+                    
+        except KeyboardInterrupt:
+            clear_screen()
+            print(f"\n{Colors.WARNING}⚠️  Game bị gián đoạn!{Colors.ENDC}")
+            self.save_data()
+            sys.exit(0)
+        except Exception as e:
+            self.show_error("Lỗi nghiêm trọng trong game", e)
+            sys.exit(1)
+
+if __name__ == "__main__":
     game = Game()
     game.run()
