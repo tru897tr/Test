@@ -25,19 +25,36 @@ class Colors:
 # Danh sách động vật theo độ hiếm
 ANIMALS = {
     "Common": [
-        {"name": "bee", "emoji": "🐝", "chance": 20, "points": 1, "sell_price": 1},
-        {"name": "bug", "emoji": "🐛", "chance": 20, "points": 1, "sell_price": 1},
-        {"name": "snail", "emoji": "🐌", "chance": 20, "points": 1, "sell_price": 1},
-        {"name": "butterfly", "emoji": "🦋", "chance": 20, "points": 1, "sell_price": 1},
-        {"name": "beetle", "emoji": "🪲", "chance": 20, "points": 1, "sell_price": 1}
+        {"name": "bee", "emoji": "🐝", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
+        {"name": "bug", "emoji": "🐛", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
+        {"name": "snail", "emoji": "🐌", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
+        {"name": "butterfly", "emoji": "🦋", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
+        {"name": "beetle", "emoji": "🪲", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1}
     ],
     "Uncommon": [
-        {"name": "chick", "emoji": "🐤", "chance": 10, "points": 5, "sell_price": 3},
-        {"name": "mouse", "emoji": "🐭", "chance": 10, "points": 5, "sell_price": 3},
-        {"name": "chicken", "emoji": "🐔", "chance": 10, "points": 5, "sell_price": 3},
-        {"name": "rabbit", "emoji": "🐰", "chance": 10, "points": 5, "sell_price": 3},
-        {"name": "chipmunk", "emoji": "🐿️", "chance": 10, "points": 5, "sell_price": 3}
-    ]
+        {"name": "chick", "emoji": "🐤", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
+        {"name": "mouse", "emoji": "🐭", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
+        {"name": "chicken", "emoji": "🐔", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
+        {"name": "rabbit", "emoji": "🐰", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
+        {"name": "chipmunk", "emoji": "🐿️", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10}
+    ],
+    "Rare": [
+        {"name": "sheep", "emoji": "🐑", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
+        {"name": "pig", "emoji": "🐷", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
+        {"name": "cow", "emoji": "🐮", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
+        {"name": "dog", "emoji": "🐶", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
+        {"name": "cat", "emoji": "🐱", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20}
+    ],
+    "Epic": [],
+    "Mythical": [],
+    "Patreon": [],
+    "Custom Patreon": [],
+    "Legendary": [],
+    "Gem": [],
+    "Bot Distorted": [],
+    "Fabled": [],
+    "Special": [],
+    "Hidden": []
 }
 
 def check_requirements():
@@ -430,6 +447,14 @@ class Game:
                         break
         return total_points
     
+    def has_any_animal_in_rarity(self, rarity):
+        """Kiểm tra xem người chơi có động vật nào trong độ hiếm này không"""
+        animals = ANIMALS.get(rarity, [])
+        for animal in animals:
+            if animal["name"] in self.data["zoo"]:
+                return True
+        return False
+    
     def show_zoo(self):
         """Hiển thị sở thú"""
         try:
@@ -440,7 +465,18 @@ class Game:
             
             rarity_colors = {
                 "Common": Colors.GRAY,
-                "Uncommon": Colors.OKGREEN
+                "Uncommon": Colors.OKGREEN,
+                "Rare": Colors.OKBLUE,
+                "Epic": Colors.HEADER,
+                "Mythical": Colors.HEADER,
+                "Patreon": Colors.WARNING,
+                "Custom Patreon": Colors.WARNING,
+                "Legendary": Colors.WARNING,
+                "Gem": Colors.OKCYAN,
+                "Bot Distorted": Colors.FAIL,
+                "Fabled": Colors.HEADER,
+                "Special": Colors.WARNING,
+                "Hidden": Colors.GRAY
             }
             
             total_unique = len(self.data["zoo"])
@@ -452,6 +488,14 @@ class Game:
             print(f"⭐ Điểm sở thú: {Colors.BOLD}{Colors.WARNING}{zoo_points}{Colors.ENDC}\n")
             
             for rarity, animals in ANIMALS.items():
+                # Bỏ qua độ hiếm rỗng hoặc chưa có động vật nào
+                if not animals:
+                    continue
+                
+                # Kiểm tra xem người chơi có động vật nào trong độ hiếm này không
+                if not self.has_any_animal_in_rarity(rarity):
+                    continue
+                
                 color = rarity_colors.get(rarity, Colors.ENDC)
                 
                 # Đếm số con và điểm ở độ hiếm này
