@@ -411,6 +411,14 @@ class Game:
         except Exception as e:
             self.show_error("Lỗi khi săn bắt động vật", e)
     
+    def get_zoo_points(self):
+        """Tính điểm sở thú (hiện tại tất cả Common = 1 điểm/con)"""
+        total_points = 0
+        for animal_name, count in self.data["zoo"].items():
+            # Hiện tại tất cả động vật Common đều = 1 điểm
+            total_points += count * 1
+        return total_points
+    
     def show_zoo(self):
         """Hiển thị sở thú"""
         try:
@@ -425,14 +433,23 @@ class Game:
             
             total_unique = len(self.data["zoo"])
             total_caught = sum(self.data["zoo"].values())
+            zoo_points = self.get_zoo_points()
             
             print(f"\n📊 Tổng số loài: {Colors.BOLD}{total_unique}{Colors.ENDC}")
-            print(f"🎯 Tổng số con: {Colors.BOLD}{total_caught}{Colors.ENDC}\n")
+            print(f"🎯 Tổng số con: {Colors.BOLD}{total_caught}{Colors.ENDC}")
+            print(f"⭐ Điểm sở thú: {Colors.BOLD}{Colors.WARNING}{zoo_points}{Colors.ENDC}\n")
             
             for rarity, animals in ANIMALS.items():
                 color = rarity_colors.get(rarity, Colors.ENDC)
+                
+                # Đếm số con ở độ hiếm này
+                rarity_count = 0
+                for animal in animals:
+                    if animal["name"] in self.data["zoo"]:
+                        rarity_count += self.data["zoo"][animal["name"]]
+                
                 print(f"{color}{'─' * 70}{Colors.ENDC}")
-                print(f"{color}{Colors.BOLD}✨ {rarity.upper()}{Colors.ENDC}")
+                print(f"{color}{Colors.BOLD}✨ {rarity.upper()} (Điểm: {rarity_count}){Colors.ENDC}")
                 print(f"{color}{'─' * 70}{Colors.ENDC}")
                 
                 for animal in animals:
@@ -446,10 +463,111 @@ class Game:
                         print(f"  ❓ {'?':<20} x0 {Colors.GRAY}(Chưa bắt được){Colors.ENDC}")
                 print()
             
-            input(f"{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
+            print(f"\n1. 💰 Bán động vật")
+            print(f"0. Quay lại")
+            
+            choice = input(f"\n{Colors.OKCYAN}👉 Chọn: {Colors.ENDC}").strip()
+            
+            if choice == "1":
+                self.sell_animal()
             
         except Exception as e:
             self.show_error("Lỗi khi hiển thị sở thú", e)
+    
+    def sell_animal(self):
+        """Bán động vật"""
+        try:
+            clear_screen()
+            print(Colors.WARNING + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.WARNING + "║" + " " * 27 + "💰 BÁN ĐỘNG VẬT" + " " * 26 + "║" + Colors.ENDC)
+            print(Colors.WARNING + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            
+            if not self.data["zoo"]:
+                print(f"\n{Colors.FAIL}❌ Bạn chưa có động vật nào để bán!{Colors.ENDC}")
+                input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
+                return
+            
+            print(f"\n{Colors.BOLD}Động vật của bạn:{Colors.ENDC}\n")
+            
+            # Hiển thị động vật có thể bán
+            animal_list = []
+            for animal_name, count in self.data["zoo"].items():
+                # Tìm emoji
+                emoji = "❓"
+                for rarity, animals in ANIMALS.items():
+                    for animal in animals:
+                        if animal["name"] == animal_name:
+                            emoji = animal["emoji"]
+                            break
+                
+                # Giá bán (Common = 1 coin)
+                sell_price = 1
+                print(f"  {emoji} {animal_name.capitalize():<15} x{count} (Giá: {sell_price} coin/con)")
+                animal_list.append(animal_name)
+            
+            print(f"\n0. Quay lại")
+            
+            animal_name = input(f"\n{Colors.OKCYAN}👉 Nhập tên động vật muốn bán: {Colors.ENDC}").strip().lower()
+            
+            if animal_name == "0":
+                return
+            
+            # Kiểm tra động vật có tồn tại
+            if animal_name not in self.data["zoo"]:
+                print(f"\n{Colors.FAIL}❌ Bạn không có động vật này!{Colors.ENDC}")
+                time.sleep(1.5)
+                return
+            
+            max_count = self.data["zoo"][animal_name]
+            
+            try:
+                count_str = input(f"{Colors.OKCYAN}👉 Nhập số lượng muốn bán (max: {max_count}): {Colors.ENDC}").strip()
+                count = int(count_str)
+                
+                if count <= 0:
+                    print(f"\n{Colors.FAIL}❌ Số lượng phải lớn hơn 0!{Colors.ENDC}")
+                    time.sleep(1.5)
+                    return
+                
+                if count > max_count:
+                    print(f"\n{Colors.FAIL}❌ Bạn chỉ có {max_count} con!{Colors.ENDC}")
+                    time.sleep(1.5)
+                    return
+                
+                # Tính tiền nhận được (Common = 1 coin/con)
+                sell_price = 1
+                total_coins = count * sell_price
+                
+                # Xác nhận
+                print(f"\n{Colors.WARNING}Bạn sẽ bán {count} {animal_name} và nhận {total_coins} coins.{Colors.ENDC}")
+                confirm = input(f"{Colors.OKCYAN}Xác nhận? (y/n): {Colors.ENDC}").strip().lower()
+                
+                if confirm == "y":
+                    loading_animation("Đang bán", 1)
+                    
+                    # Cập nhật dữ liệu
+                    self.data["zoo"][animal_name] -= count
+                    if self.data["zoo"][animal_name] == 0:
+                        del self.data["zoo"][animal_name]
+                    
+                    self.data["coins"] += total_coins
+                    
+                    # Lưu ngay
+                    self.save_data()
+                    
+                    print(f"\n{Colors.OKGREEN}✅ Đã bán thành công!{Colors.ENDC}")
+                    print(f"💰 +{total_coins} coins (Tổng: {self.data['coins']})")
+                    time.sleep(2)
+                else:
+                    print(f"\n{Colors.GRAY}Đã hủy bán.{Colors.ENDC}")
+                    time.sleep(1)
+                    
+            except ValueError:
+                print(f"\n{Colors.FAIL}❌ Vui lòng nhập số hợp lệ!{Colors.ENDC}")
+                time.sleep(1.5)
+                
+        except Exception as e:
+            self.show_error("Lỗi khi bán động vật", e)
     
     def show_stats(self):
         """Hiển thị thông tin người chơi"""
@@ -462,7 +580,7 @@ class Game:
             exp_needed = self.get_exp_needed(self.data['level'])
             exp_percent = self.get_exp_percent()
             exp_bar_length = 30
-            exp_bar_filled = int((exp_percent / 100) * exp_bar_length)
+            exp_bar_filled = int((self.data['exp'] / exp_needed) * exp_bar_length)
             exp_bar = "█" * exp_bar_filled + "░" * (exp_bar_length - exp_bar_filled)
             
             print(f"\n💰 Coins: {Colors.BOLD}{Colors.OKGREEN}{self.data['coins']}{Colors.ENDC}")
