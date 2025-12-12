@@ -25,11 +25,18 @@ class Colors:
 # Danh sách động vật theo độ hiếm
 ANIMALS = {
     "Common": [
-        {"name": "bee", "emoji": "🐝", "chance": 20},
-        {"name": "bug", "emoji": "🐛", "chance": 20},
-        {"name": "snail", "emoji": "🐌", "chance": 20},
-        {"name": "butterfly", "emoji": "🦋", "chance": 20},
-        {"name": "beetle", "emoji": "🪲", "chance": 20}
+        {"name": "bee", "emoji": "🐝", "chance": 20, "points": 1, "sell_price": 1},
+        {"name": "bug", "emoji": "🐛", "chance": 20, "points": 1, "sell_price": 1},
+        {"name": "snail", "emoji": "🐌", "chance": 20, "points": 1, "sell_price": 1},
+        {"name": "butterfly", "emoji": "🦋", "chance": 20, "points": 1, "sell_price": 1},
+        {"name": "beetle", "emoji": "🪲", "chance": 20, "points": 1, "sell_price": 1}
+    ],
+    "Uncommon": [
+        {"name": "chick", "emoji": "🐤", "chance": 10, "points": 5, "sell_price": 3},
+        {"name": "mouse", "emoji": "🐭", "chance": 10, "points": 5, "sell_price": 3},
+        {"name": "chicken", "emoji": "🐔", "chance": 10, "points": 5, "sell_price": 3},
+        {"name": "rabbit", "emoji": "🐰", "chance": 10, "points": 5, "sell_price": 3},
+        {"name": "chipmunk", "emoji": "🐿️", "chance": 10, "points": 5, "sell_price": 3}
     ]
 }
 
@@ -412,11 +419,15 @@ class Game:
             self.show_error("Lỗi khi săn bắt động vật", e)
     
     def get_zoo_points(self):
-        """Tính điểm sở thú (hiện tại tất cả Common = 1 điểm/con)"""
+        """Tính điểm sở thú theo độ hiếm"""
         total_points = 0
         for animal_name, count in self.data["zoo"].items():
-            # Hiện tại tất cả động vật Common đều = 1 điểm
-            total_points += count * 1
+            # Tìm động vật và lấy điểm
+            for rarity, animals in ANIMALS.items():
+                for animal in animals:
+                    if animal["name"] == animal_name:
+                        total_points += count * animal["points"]
+                        break
         return total_points
     
     def show_zoo(self):
@@ -428,7 +439,8 @@ class Game:
             print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
             
             rarity_colors = {
-                "Common": Colors.GRAY
+                "Common": Colors.GRAY,
+                "Uncommon": Colors.OKGREEN
             }
             
             total_unique = len(self.data["zoo"])
@@ -442,14 +454,17 @@ class Game:
             for rarity, animals in ANIMALS.items():
                 color = rarity_colors.get(rarity, Colors.ENDC)
                 
-                # Đếm số con ở độ hiếm này
+                # Đếm số con và điểm ở độ hiếm này
                 rarity_count = 0
+                rarity_points = 0
                 for animal in animals:
                     if animal["name"] in self.data["zoo"]:
-                        rarity_count += self.data["zoo"][animal["name"]]
+                        count = self.data["zoo"][animal["name"]]
+                        rarity_count += count
+                        rarity_points += count * animal["points"]
                 
                 print(f"{color}{'─' * 70}{Colors.ENDC}")
-                print(f"{color}{Colors.BOLD}✨ {rarity.upper()} (Điểm: {rarity_count}){Colors.ENDC}")
+                print(f"{color}{Colors.BOLD}✨ {rarity.upper()} (Điểm: {rarity_points} / Tổng số lượng: {rarity_count}){Colors.ENDC}")
                 print(f"{color}{'─' * 70}{Colors.ENDC}")
                 
                 for animal in animals:
@@ -463,13 +478,18 @@ class Game:
                         print(f"  ❓ {'?':<20} x0 {Colors.GRAY}(Chưa bắt được){Colors.ENDC}")
                 print()
             
-            print(f"\n1. 💰 Bán động vật")
+            print(f"1. 💰 Bán động vật")
             print(f"0. Quay lại")
             
             choice = input(f"\n{Colors.OKCYAN}👉 Chọn: {Colors.ENDC}").strip()
             
             if choice == "1":
                 self.sell_animal()
+            elif choice == "0":
+                return
+            else:
+                print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                time.sleep(1)
             
         except Exception as e:
             self.show_error("Lỗi khi hiển thị sở thú", e)
@@ -492,16 +512,16 @@ class Game:
             # Hiển thị động vật có thể bán
             animal_list = []
             for animal_name, count in self.data["zoo"].items():
-                # Tìm emoji
+                # Tìm emoji và giá bán
                 emoji = "❓"
+                sell_price = 1
                 for rarity, animals in ANIMALS.items():
                     for animal in animals:
                         if animal["name"] == animal_name:
                             emoji = animal["emoji"]
+                            sell_price = animal["sell_price"]
                             break
                 
-                # Giá bán (Common = 1 coin)
-                sell_price = 1
                 print(f"  {emoji} {animal_name.capitalize():<15} x{count} (Giá: {sell_price} coin/con)")
                 animal_list.append(animal_name)
             
@@ -522,6 +542,10 @@ class Game:
             
             try:
                 count_str = input(f"{Colors.OKCYAN}👉 Nhập số lượng muốn bán (max: {max_count}): {Colors.ENDC}").strip()
+                
+                if count_str == "0":
+                    return
+                
                 count = int(count_str)
                 
                 if count <= 0:
@@ -534,8 +558,14 @@ class Game:
                     time.sleep(1.5)
                     return
                 
-                # Tính tiền nhận được (Common = 1 coin/con)
+                # Tìm giá bán
                 sell_price = 1
+                for rarity, animals in ANIMALS.items():
+                    for animal in animals:
+                        if animal["name"] == animal_name:
+                            sell_price = animal["sell_price"]
+                            break
+                
                 total_coins = count * sell_price
                 
                 # Xác nhận
@@ -565,6 +595,7 @@ class Game:
             except ValueError:
                 print(f"\n{Colors.FAIL}❌ Vui lòng nhập số hợp lệ!{Colors.ENDC}")
                 time.sleep(1.5)
+                return
                 
         except Exception as e:
             self.show_error("Lỗi khi bán động vật", e)
@@ -604,18 +635,18 @@ class Game:
     def shop(self):
         """Cửa hàng mua vật phẩm"""
         try:
+            clear_screen()
+            print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.OKGREEN + "║" + " " * 29 + "🏪 CỬA HÀNG" + " " * 28 + "║" + Colors.ENDC)
+            print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            print(f"\n💰 Coins của bạn: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}\n")
+            
             items = {
                 "1": {"name": "Kiếm sắt", "price": 500, "desc": "Vũ khí cơ bản", "emoji": "⚔️"},
                 "2": {"name": "Áo giáp", "price": 800, "desc": "Tăng phòng thủ", "emoji": "🛡️"},
                 "3": {"name": "Thuốc hồi máu", "price": 200, "desc": "Hồi 50 HP", "emoji": "💊"},
                 "4": {"name": "Bùa may mắn", "price": 1500, "desc": "Tăng tỷ lệ critical", "emoji": "🍀"}
             }
-            
-            clear_screen()
-            print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKGREEN + "║" + " " * 29 + "🏪 CỬA HÀNG" + " " * 28 + "║" + Colors.ENDC)
-            print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
-            print(f"\n💰 Coins của bạn: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}\n")
             
             for key, item in items.items():
                 print(f"{item['emoji']} {key}. {Colors.BOLD}{item['name']}{Colors.ENDC} - {Colors.WARNING}{item['price']} coins{Colors.ENDC}")
@@ -639,6 +670,9 @@ class Game:
                     time.sleep(1)
             elif choice == "0":
                 return
+            else:
+                print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                time.sleep(1)
             
         except Exception as e:
             self.show_error("Lỗi trong cửa hàng", e)
