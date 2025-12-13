@@ -1246,4 +1246,4 @@ if __name__ == "__main__":
                         animal_data = self.get_animal_data(animal_name)
                         if animal_data:
                             real_stats = self.calculate_real_stats(animal_name, self.data['level'])
-                            print(f"
+                            print(f") 
