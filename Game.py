@@ -22,28 +22,43 @@ class Colors:
     UNDERLINE = '\033[4m'
     GRAY = '\033[90m'
 
-# Danh sách động vật theo độ hiếm
+# Danh sách động vật theo độ hiếm với stats
 ANIMALS = {
     "Common": [
-        {"name": "bee", "emoji": "🐝", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
-        {"name": "bug", "emoji": "🐛", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
-        {"name": "snail", "emoji": "🐌", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
-        {"name": "butterfly", "emoji": "🦋", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1},
-        {"name": "beetle", "emoji": "🪲", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1}
+        {"name": "bee", "emoji": "🐝", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1,
+         "stats": {"hp": 1, "atk": 1, "pr": 2, "wp": 3, "mag": 3, "mr": 1}},
+        {"name": "bug", "emoji": "🐛", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1,
+         "stats": {"hp": 3, "atk": 2, "pr": 2, "wp": 4, "mag": 2, "mr": 2}},
+        {"name": "snail", "emoji": "🐌", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1,
+         "stats": {"hp": 8, "atk": 1, "pr": 2, "wp": 3, "mag": 5, "mr": 1}},
+        {"name": "butterfly", "emoji": "🦋", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1,
+         "stats": {"hp": 1, "atk": 1, "pr": 1, "wp": 5, "mag": 5, "mr": 2}},
+        {"name": "beetle", "emoji": "🪲", "chance": 11.6, "points": 1, "sell_price": 1, "exp": 1,
+         "stats": {"hp": 4, "atk": 2, "pr": 2, "wp": 3, "mag": 2, "mr": 2}}
     ],
     "Uncommon": [
-        {"name": "chick", "emoji": "🐤", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
-        {"name": "mouse", "emoji": "🐭", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
-        {"name": "chicken", "emoji": "🐔", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
-        {"name": "rabbit", "emoji": "🐰", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10},
-        {"name": "chipmunk", "emoji": "🐿️", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10}
+        {"name": "chick", "emoji": "🐤", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10,
+         "stats": {"hp": 3, "atk": 2, "pr": 3, "wp": 3, "mag": 3, "mr": 2}},
+        {"name": "mouse", "emoji": "🐭", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10,
+         "stats": {"hp": 3, "atk": 3, "pr": 2, "wp": 3, "mag": 3, "mr": 2}},
+        {"name": "chicken", "emoji": "🐔", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10,
+         "stats": {"hp": 3, "atk": 4, "pr": 3, "wp": 2, "mag": 2, "mr": 2}},
+        {"name": "rabbit", "emoji": "🐰", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10,
+         "stats": {"hp": 3, "atk": 4, "pr": 2, "wp": 3, "mag": 2, "mr": 2}},
+        {"name": "chipmunk", "emoji": "🐿️", "chance": 6.0, "points": 5, "sell_price": 3, "exp": 10,
+         "stats": {"hp": 3, "atk": 5, "pr": 2, "wp": 3, "mag": 2, "mr": 1}}
     ],
     "Rare": [
-        {"name": "sheep", "emoji": "🐑", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
-        {"name": "pig", "emoji": "🐷", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
-        {"name": "cow", "emoji": "🐮", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
-        {"name": "dog", "emoji": "🐶", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20},
-        {"name": "cat", "emoji": "🐱", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20}
+        {"name": "sheep", "emoji": "🐑", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20,
+         "stats": {"hp": 5, "atk": 2, "pr": 2, "wp": 3, "mag": 1, "mr": 4}},
+        {"name": "pig", "emoji": "🐷", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20,
+         "stats": {"hp": 4, "atk": 2, "pr": 3, "wp": 2, "mag": 2, "mr": 4}},
+        {"name": "cow", "emoji": "🐮", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20,
+         "stats": {"hp": 5, "atk": 4, "pr": 3, "wp": 1, "mag": 1, "mr": 3}},
+        {"name": "dog", "emoji": "🐶", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20,
+         "stats": {"hp": 4, "atk": 6, "pr": 3, "wp": 1, "mag": 1, "mr": 2}},
+        {"name": "cat", "emoji": "🐱", "chance": 2.0, "points": 20, "sell_price": 10, "exp": 20,
+         "stats": {"hp": 3, "atk": 1, "pr": 1, "wp": 6, "mag": 3, "mr": 3}}
     ],
     "Epic": [],
     "Mythical": [],
@@ -211,6 +226,8 @@ class Game:
                     # Đảm bảo có đầy đủ các trường
                     if "zoo" not in data:
                         data["zoo"] = {}
+                    if "team" not in data:
+                        data["team"] = []
                     if "stats" not in data:
                         data["stats"] = {}
                     if "animals_caught" not in data["stats"]:
@@ -239,6 +256,7 @@ class Game:
             "total_daily_collected": 0,
             "inventory": [],
             "zoo": {},
+            "team": [],  # Đội hình tối đa 3 pet
             "stats": {
                 "total_coins_earned": 0,
                 "days_played": 0,
@@ -523,22 +541,99 @@ class Game:
                 print()
             
             print(f"1. 💰 Bán động vật")
+            print(f"2. 📊 Xem chỉ số động vật")
             print(f"0. Quay lại")
             
             choice = input(f"\n{Colors.OKCYAN}👉 Chọn: {Colors.ENDC}").strip()
             
             if choice == "1":
                 self.sell_animal()
+                self.show_zoo()  # Quay lại sở thú sau khi bán
+            elif choice == "2":
+                self.view_animal_stats()
+                self.show_zoo()  # Quay lại sở thú
             elif choice == "0":
                 return
             else:
                 print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
                 time.sleep(1)
+                self.show_zoo()  # Quay lại sở thú
             
         except Exception as e:
             self.show_error("Lỗi khi hiển thị sở thú", e)
     
-    def sell_animal(self):
+    def get_animal_data(self, animal_name):
+        """Lấy thông tin động vật từ tên"""
+        for rarity, animals in ANIMALS.items():
+            for animal in animals:
+                if animal["name"] == animal_name:
+                    return animal
+        return None
+    
+    def view_animal_stats(self):
+        """Xem chỉ số động vật"""
+        try:
+            clear_screen()
+            print(Colors.OKBLUE + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.OKBLUE + "║" + " " * 24 + "📊 CHỈ SỐ ĐỘNG VẬT" + " " * 25 + "║" + Colors.ENDC)
+            print(Colors.OKBLUE + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            
+            if not self.data["zoo"]:
+                print(f"\n{Colors.FAIL}❌ Bạn chưa có động vật nào!{Colors.ENDC}")
+                input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
+                return
+            
+            print(f"\n{Colors.BOLD}Chọn động vật để xem chỉ số:{Colors.ENDC}\n")
+            
+            animal_list = []
+            index = 1
+            for animal_name in self.data["zoo"].keys():
+                animal_data = self.get_animal_data(animal_name)
+                if animal_data:
+                    print(f"{index}. {animal_data['emoji']} {animal_name.capitalize()}")
+                    animal_list.append(animal_name)
+                    index += 1
+            
+            print(f"\n0. Quay lại")
+            
+            choice = input(f"\n{Colors.OKCYAN}👉 Chọn số: {Colors.ENDC}").strip()
+            
+            if choice == "0":
+                return
+            
+            try:
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(animal_list):
+                    selected_animal = animal_list[choice_idx]
+                    animal_data = self.get_animal_data(selected_animal)
+                    
+                    if animal_data:
+                        clear_screen()
+                        print(Colors.OKBLUE + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                        print(Colors.OKBLUE + "║" + f"  📊 CHỈ SỐ: {selected_animal.upper()} {animal_data['emoji']}" + " " * (56 - len(selected_animal)) + "║" + Colors.ENDC)
+                        print(Colors.OKBLUE + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                        
+                        stats = animal_data['stats']
+                        print(f"\n{Colors.BOLD}Chỉ số cơ bản:{Colors.ENDC}")
+                        print(f"  ❤️  HP (Health Points):        {stats['hp']}")
+                        print(f"  ⚔️  ATK (Physical Attack):     {stats['atk']}")
+                        print(f"  🛡️  PR (Physical Resistance):  {stats['pr']}")
+                        print(f"  💎 WP (Weapon Points):         {stats['wp']}")
+                        print(f"  ✨ MAG (Magical Attack):       {stats['mag']}")
+                        print(f"  🌟 MR (Magical Resistance):    {stats['mr']}")
+                        
+                        input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(1)
+                    self.view_animal_stats()
+            except ValueError:
+                print(f"\n{Colors.FAIL}❌ Vui lòng nhập số hợp lệ!{Colors.ENDC}")
+                time.sleep(1)
+                self.view_animal_stats()
+                
+        except Exception as e:
+            self.show_error("Lỗi khi xem chỉ số động vật", e)
         """Bán động vật"""
         try:
             clear_screen()
@@ -843,6 +938,7 @@ class Game:
                     print("4. 🎁 Nhận daily")
                     print("5. 🎣 Săn bắt")
                     print("6. 🦁 Sở thú")
+                    print("7. ⚔️  Thiết lập đội")
                     print("0. 🚪 Thoát game")
                     
                     choice = input(f"\n{Colors.OKCYAN}👉 Nhập lựa chọn: {Colors.ENDC}").strip().lower()
@@ -859,6 +955,8 @@ class Game:
                         self.hunt_animal()
                     elif choice in ["6", "ozoo", "owo zoo", "zoo"]:
                         self.show_zoo()
+                    elif choice == "7":
+                        self.manage_team()
                     elif choice == "0":
                         clear_screen()
                         print_with_effect("👋 Tạm biệt! Hẹn gặp lại!", 0.03, Colors.OKGREEN)
