@@ -817,76 +817,171 @@ class Game:
             self.show_error("Lỗi trong cửa hàng", e)
     
     def battle(self):
-        """Chiến đấu với quái vật"""
+        """Chiến đấu PvE với đội hình"""
         try:
-            monsters = [
-                {"name": "Slime", "hp": 30, "reward": 100, "emoji": "🟢"},
-                {"name": "Goblin", "hp": 50, "reward": 200, "emoji": "👺"},
-                {"name": "Orc", "hp": 80, "reward": 350, "emoji": "👹"},
-                {"name": "Dragon", "hp": 150, "reward": 1000, "emoji": "🐲"}
-            ]
-            
-            monster = random.choice(monsters)
-            player_hp = 100
-            max_monster_hp = monster["hp"]
+            # Kiểm tra có pet trong đội không
+            if not self.data["team"]:
+                clear_screen()
+                print_box("❌ Bạn phải thiết lập đội trước!\nVào mục 7. Thiết lập đội để thêm pet.", Colors.FAIL)
+                input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
+                return
             
             clear_screen()
             print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            title_text = f"  ⚔️  BẮT GẶP {monster['name'].upper()}! {monster['emoji']}"
-            padding = 70 - len(title_text) - 2
-            print(Colors.FAIL + "║" + title_text + " " * padding + "║" + Colors.ENDC)
+            print(Colors.FAIL + "║" + " " * 26 + "⚔️  BẮT ĐẦU CHIẾN ĐẤU" + " " * 23 + "║" + Colors.ENDC)
             print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
             
-            while monster["hp"] > 0 and player_hp > 0:
-                # Thanh HP
-                monster_hp_percent = (monster["hp"] / max_monster_hp) * 40
-                monster_hp_bar = "█" * int(monster_hp_percent) + "░" * (40 - int(monster_hp_percent))
-                player_hp_percent = (player_hp / 100) * 40
-                player_hp_bar = "█" * int(player_hp_percent) + "░" * (40 - int(player_hp_percent))
-                
-                monster_name = monster['name']
-                print(f"\n👹 {monster_name} HP: [{Colors.FAIL}{monster_hp_bar}{Colors.ENDC}] {monster['hp']}/{max_monster_hp}")
-                print(f"👤 Your HP:      [{Colors.OKGREEN}{player_hp_bar}{Colors.ENDC}] {player_hp}/100")
-                
-                print(f"\n1. ⚔️  Tấn công")
-                print(f"2. 🏃 Bỏ chạy")
-                choice = input(f"\n{Colors.OKCYAN}👉 Chọn hành động: {Colors.ENDC}").strip()
-                
-                if choice == "1":
-                    damage = random.randint(15, 30)
-                    monster["hp"] -= damage
-                    print(f"\n{Colors.OKGREEN}⚔️  Bạn gây {damage} sát thương!{Colors.ENDC}")
-                    time.sleep(0.5)
-                    
-                    if monster["hp"] > 0:
-                        enemy_damage = random.randint(10, 20)
-                        player_hp -= enemy_damage
-                        print(f"{Colors.FAIL}💥 {monster_name} phản công gây {enemy_damage} sát thương!{Colors.ENDC}")
-                        time.sleep(0.5)
-                elif choice == "2":
-                    print(f"\n{Colors.WARNING}🏃 Bạn đã bỏ chạy!{Colors.ENDC}")
-                    time.sleep(1)
-                    return
-                else:
-                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
-                    time.sleep(0.5)
-                    continue
+            loading_animation("Đang tìm đối thủ", 2)
             
-            if player_hp > 0:
+            # Tạo đội địch
+            player_team = []
+            for animal_name in self.data["team"]:
+                animal_data = self.get_animal_data(animal_name)
+                if animal_data:
+                    stats = self.calculate_real_stats(animal_name, self.data['level'])
+                    player_team.append({
+                        "name": animal_name,
+                        "emoji": animal_data['emoji'],
+                        "hp": stats['hp'],
+                        "max_hp": stats['hp'],
+                        "atk": stats['atk'],
+                        "mag": stats['mag'],
+                        "level": self.data['level']
+                    })
+            
+            # Tính tổng level của đội mình
+            total_player_level = len(player_team) * self.data['level']
+            max_enemy_level = total_player_level + 3
+            
+            # Tạo đội địch ngẫu nhiên
+            enemy_team = []
+            enemy_total_level = 0
+            enemy_count = random.randint(1, 3)
+            
+            for i in range(enemy_count):
+                # Chọn pet ngẫu nhiên
+                all_animals_list = []
+                for rarity, animals in ANIMALS.items():
+                    if animals:
+                        all_animals_list.extend(animals)
+                
+                if all_animals_list:
+                    enemy_animal = random.choice(all_animals_list)
+                    # Random level sao cho tổng không vượt quá
+                    remaining_slots = enemy_count - i
+                    max_this_level = (max_enemy_level - enemy_total_level) // remaining_slots if remaining_slots > 0 else 1
+                    enemy_level = random.randint(max(1, self.data['level'] - 2), max(1, max_this_level))
+                    enemy_total_level += enemy_level
+                    
+                    stats = self.calculate_real_stats(enemy_animal['name'], enemy_level)
+                    enemy_team.append({
+                        "name": enemy_animal['name'],
+                        "emoji": enemy_animal['emoji'],
+                        "hp": stats['hp'],
+                        "max_hp": stats['hp'],
+                        "atk": stats['atk'],
+                        "mag": stats['mag'],
+                        "level": enemy_level
+                    })
+            
+            # Hiển thị đội hình
+            clear_screen()
+            print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.OKGREEN + "║" + " " * 28 + "⚔️  ĐỘI CỦA BẠN" + " " * 25 + "║" + Colors.ENDC)
+            print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            for pet in player_team:
+                print(f"  {pet['emoji']} {pet['name'].capitalize()} (Lv.{pet['level']}) - HP: {pet['hp']}/{pet['max_hp']}")
+            
+            print(f"\n{Colors.FAIL}{'─' * 70}{Colors.ENDC}")
+            print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.FAIL + "║" + " " * 27 + "⚔️  ĐỘI ĐỐI THỦ" + " " * 26 + "║" + Colors.ENDC)
+            print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            for pet in enemy_team:
+                print(f"  {pet['emoji']} {pet['name'].capitalize()} (Lv.{pet['level']}) - HP: {pet['hp']}/{pet['max_hp']}")
+            
+            input(f"\n{Colors.WARNING}Nhấn Enter để bắt đầu...{Colors.ENDC}")
+            
+            # Bắt đầu chiến đấu (24 lượt tối đa)
+            turn = 0
+            max_turns = 24
+            
+            while turn < max_turns:
+                turn += 1
                 clear_screen()
+                print(Colors.WARNING + f"{'═' * 30} LƯỢT {turn}/{max_turns} {'═' * 30}" + Colors.ENDC)
+                
+                # Hiển thị HP
+                print(f"\n{Colors.OKGREEN}Đội bạn:{Colors.ENDC}")
+                for pet in player_team:
+                    if pet['hp'] > 0:
+                        hp_percent = (pet['hp'] / pet['max_hp']) * 20
+                        hp_bar = "█" * int(hp_percent) + "░" * (20 - int(hp_percent))
+                        print(f"  {pet['emoji']} {pet['name']} [{Colors.OKGREEN}{hp_bar}{Colors.ENDC}] {pet['hp']}/{pet['max_hp']}")
+                
+                print(f"\n{Colors.FAIL}Đội địch:{Colors.ENDC}")
+                for pet in enemy_team:
+                    if pet['hp'] > 0:
+                        hp_percent = (pet['hp'] / pet['max_hp']) * 20
+                        hp_bar = "█" * int(hp_percent) + "░" * (20 - int(hp_percent))
+                        print(f"  {pet['emoji']} {pet['name']} [{Colors.FAIL}{hp_bar}{Colors.ENDC}] {pet['hp']}/{pet['max_hp']}")
+                
+                # Đội bạn tấn công
+                alive_player = [p for p in player_team if p['hp'] > 0]
+                alive_enemy = [p for p in enemy_team if p['hp'] > 0]
+                
+                if not alive_player or not alive_enemy:
+                    break
+                
+                attacker = random.choice(alive_player)
+                target = random.choice(alive_enemy)
+                damage = random.randint(int(attacker['atk'] * 0.8), int(attacker['atk'] * 1.2))
+                target['hp'] -= damage
+                if target['hp'] < 0:
+                    target['hp'] = 0
+                
+                print(f"\n⚔️  {attacker['emoji']} {attacker['name']} tấn công {target['emoji']} {target['name']}: {Colors.FAIL}-{damage} HP{Colors.ENDC}")
+                time.sleep(0.8)
+                
+                # Đội địch phản công
+                alive_enemy = [p for p in enemy_team if p['hp'] > 0]
+                if alive_enemy:
+                    attacker = random.choice(alive_enemy)
+                    target = random.choice([p for p in player_team if p['hp'] > 0])
+                    damage = random.randint(int(attacker['atk'] * 0.8), int(attacker['atk'] * 1.2))
+                    target['hp'] -= damage
+                    if target['hp'] < 0:
+                        target['hp'] = 0
+                    
+                    print(f"💥 {attacker['emoji']} {attacker['name']} phản công {target['emoji']} {target['name']}: {Colors.FAIL}-{damage} HP{Colors.ENDC}")
+                    time.sleep(0.8)
+                
+                # Kiểm tra kết thúc
+                alive_player = [p for p in player_team if p['hp'] > 0]
+                alive_enemy = [p for p in enemy_team if p['hp'] > 0]
+                
+                if not alive_player or not alive_enemy:
+                    break
+                
+                input(f"\n{Colors.GRAY}Nhấn Enter cho lượt tiếp...{Colors.ENDC}")
+            
+            # Kết quả
+            clear_screen()
+            alive_player = [p for p in player_team if p['hp'] > 0]
+            alive_enemy = [p for p in enemy_team if p['hp'] > 0]
+            
+            if not alive_enemy and alive_player:
+                # Thắng
                 print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
                 print(Colors.OKGREEN + "║" + " " * 28 + "🎉 CHIẾN THẮNG!" + " " * 27 + "║" + Colors.ENDC)
                 print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
-                print(f"\n💰 +{monster['reward']} coins")
-                print(f"✨ +50 EXP")
                 
-                self.data["coins"] += monster["reward"]
-                self.data["exp"] += 50
-                self.data["stats"]["total_coins_earned"] += monster["reward"]
+                reward_coins = random.randint(50, 150)
+                reward_exp = random.randint(30, 80)
+                
+                self.data["coins"] += reward_coins
+                self.data["exp"] += reward_exp
                 self.data["stats"]["battles_won"] += 1
-                
-                # Lưu ngay sau khi nhận thưởng
-                self.auto_save()
+                self.data["stats"]["total_coins_earned"] += reward_coins
                 
                 # Check level up
                 level_up_count = 0
@@ -896,21 +991,31 @@ class Game:
                     self.data["exp"] -= exp_needed
                     level_up_count += 1
                     exp_needed = self.get_exp_needed(self.data['level'])
-                    # Lưu ngay khi level up
-                    self.auto_save()
+                
+                print(f"\n💰 +{reward_coins} coins")
+                print(f"⭐ +{reward_exp} EXP")
                 
                 if level_up_count > 0:
                     print(f"\n{Colors.WARNING}🎊 LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
                 
                 self.save_data()
-                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
-            else:
-                clear_screen()
+                
+            elif not alive_player and alive_enemy:
+                # Thua
                 print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
                 print(Colors.FAIL + "║" + " " * 28 + "💀 BẠN ĐÃ THUA!" + " " * 28 + "║" + Colors.ENDC)
                 print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
-                input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                print(f"\n{Colors.GRAY}Hãy nâng cấp đội hình và thử lại!{Colors.ENDC}")
                 
+            else:
+                # Hòa
+                print(Colors.WARNING + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.WARNING + "║" + " " * 30 + "🤝 HÒA!" + " " * 31 + "║" + Colors.ENDC)
+                print(Colors.WARNING + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                print(f"\n{Colors.GRAY}Trận đấu hết {max_turns} lượt!{Colors.ENDC}")
+            
+            input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+            
         except Exception as e:
             self.show_error("Lỗi trong chiến đấu", e)
     
