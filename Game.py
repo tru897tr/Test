@@ -202,17 +202,19 @@ def loading_animation(text="Loading", duration=1):
 
 def show_rarity_table():
     """Hiển thị bảng phân loại độ hiếm"""
-    print(f"\n{Colors.BOLD}{'═' * 70}{Colors.ENDC}")
-    print(f"{Colors.BOLD}📊 BẢNG PHÂN LOẠI ĐỘ HIẾM{Colors.ENDC}")
-    print(f"{Colors.BOLD}{'═' * 70}{Colors.ENDC}")
+    print(f"\n{Colors.BOLD}╔══════════════════════════════════════════════════════════════════╗{Colors.ENDC}")
+    print(f"{Colors.BOLD}║                    📊 BẢNG PHÂN LOẠI ĐỘ HIẾM                    ║{Colors.ENDC}")
+    print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+    print(f"{Colors.BOLD}║  Độ hiếm       │  Icon │  EXP/Lv  │  Số loài  │  Màu sắc       ║{Colors.ENDC}")
+    print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
     
     rarity_info = {
-        "Common": {"color": Colors.GRAY, "exp_req": 50, "icon": "⚪"},
-        "Uncommon": {"color": Colors.OKGREEN, "exp_req": 75, "icon": "🟢"},
-        "Rare": {"color": Colors.OKBLUE, "exp_req": 100, "icon": "🔵"},
-        "Epic": {"color": Colors.HEADER, "exp_req": 150, "icon": "🟣"},
-        "Mythical": {"color": Colors.WARNING, "exp_req": 200, "icon": "🟠"},
-        "Legendary": {"color": Colors.FAIL, "exp_req": 350, "icon": "🔴"}
+        "Common": {"color": Colors.GRAY, "exp_req": 50, "icon": "⚪", "display": "Phổ thông"},
+        "Uncommon": {"color": Colors.OKGREEN, "exp_req": 75, "icon": "🟢", "display": "Khá hiếm"},
+        "Rare": {"color": Colors.OKBLUE, "exp_req": 100, "icon": "🔵", "display": "Hiếm"},
+        "Epic": {"color": Colors.HEADER, "exp_req": 150, "icon": "🟣", "display": "Sử thi"},
+        "Mythical": {"color": Colors.WARNING, "exp_req": 200, "icon": "🟠", "display": "Thần t化"},
+        "Legendary": {"color": Colors.FAIL, "exp_req": 350, "icon": "🔴", "display": "Huyền thoại"}
     }
     
     for rarity, info in rarity_info.items():
@@ -221,10 +223,13 @@ def show_rarity_table():
         color = info["color"]
         icon = info["icon"]
         exp_req = info["exp_req"]
+        display = info["display"]
         
-        print(f"{icon} {color}{rarity:<15}{Colors.ENDC} | EXP/Level: {Colors.BOLD}{exp_req:>3}{Colors.ENDC} | Số loài: {Colors.BOLD}{count:>2}{Colors.ENDC}")
+        print(f"{Colors.BOLD}║{Colors.ENDC}  {color}{rarity:<13}{Colors.ENDC} │   {icon}   │  {Colors.BOLD}{exp_req:>6}{Colors.ENDC}  │    {Colors.BOLD}{count:>2}{Colors.ENDC}     │  {color}{'█' * 10}{Colors.ENDC}  {Colors.BOLD}║{Colors.ENDC}")
     
-    print(f"{Colors.BOLD}{'═' * 70}{Colors.ENDC}\n")class Game:
+    print(f"{Colors.BOLD}╚══════════════════════════════════════════════════════════════════╝{Colors.ENDC}\n")
+
+class Game:
     def __init__(self):
         try:
             self.data = self.load_data()
@@ -504,17 +509,26 @@ def show_rarity_table():
             color = rarity_colors.get(rarity, Colors.ENDC)
             
             print(color + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(color + "║" + " " * 24 + "🎣 SĂN BẮT THÀNH CÔNG!" + " " * 23 + "║" + Colors.ENDC)
+            print(color + "║" + " " * 22 + "🎣 SĂN BẮT THÀNH CÔNG! 🎣" + " " * 21 + "║" + Colors.ENDC)
             print(color + "╚" + "═" * 68 + "╝" + Colors.ENDC)
             
-            print(f"\n{animal_emoji} Bạn đã bắt được: {Colors.BOLD}{animal_name.upper()}{Colors.ENDC}")
-            print(f"✨ Độ hiếm: {color}{rarity}{Colors.ENDC}")
-            print(f"📊 Số lượng hiện có: {Colors.BOLD}{self.data['zoo'][animal_name]}{Colors.ENDC}")
-            print(f"💰 Coins còn lại: {self.data['coins']}")
-            print(f"⭐ EXP nhận được: {Colors.OKCYAN}+{hunt_exp}{Colors.ENDC}")
+            print(f"\n{Colors.BOLD}╔══════════════════════════════════════════════════════════════════╗{Colors.ENDC}")
+            print(f"{Colors.BOLD}║  THÔNG TIN ĐỘNG VẬT                                              ║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  {animal_emoji}  Tên:           {Colors.BOLD}{animal_name.upper():<40}{Colors.ENDC}      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  ✨ Độ hiếm:      {color}{rarity:<40}{Colors.ENDC}      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  📊 Số lượng:     {Colors.BOLD}{self.data['zoo'][animal_name]} con{Colors.ENDC} trong sở thú                          {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+            print(f"{Colors.BOLD}║  PHẦN THƯỞNG                                                      ║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  ⭐ EXP người chơi:  {Colors.OKCYAN}+{hunt_exp}{Colors.ENDC}                                          {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  💰 Coins còn lại:   {Colors.OKGREEN}{self.data['coins']}{Colors.ENDC}                                          {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╚══════════════════════════════════════════════════════════════════╝{Colors.ENDC}")
             
             if player_level_up > 0:
-                print(f"\n{Colors.WARNING}🎊 LEVEL UP x{player_level_up}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                print(f"\n{Colors.WARNING}{'🎊 ' * 35}{Colors.ENDC}")
+                print(f"{Colors.WARNING}{Colors.BOLD}   LEVEL UP x{player_level_up}! BẠN ĐẠT LEVEL {self.data['level']}!{Colors.ENDC}")
+                print(f"{Colors.WARNING}{'🎊 ' * 35}{Colors.ENDC}")
             
             input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
             
@@ -1239,7 +1253,7 @@ def show_rarity_table():
         try:
             clear_screen()
             print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-            print(Colors.OKCYAN + "║" + " " * 22 + "📊 THÔNG TIN NGƯỜI CHƠI" + " " * 23 + "║" + Colors.ENDC)
+            print(Colors.OKCYAN + "║" + Colors.BOLD + " " * 20 + "📊 THÔNG TIN NGƯỜI CHƠI 📊" + " " * 21 + Colors.ENDC + Colors.OKCYAN + "║" + Colors.ENDC)
             print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
             
             exp_needed = self.get_exp_needed(self.data['level'])
@@ -1248,19 +1262,26 @@ def show_rarity_table():
             exp_bar_filled = int((self.data['exp'] / exp_needed) * exp_bar_length)
             exp_bar = "█" * exp_bar_filled + "░" * (exp_bar_length - exp_bar_filled)
             
-            print(f"\n💰 Coins: {Colors.BOLD}{Colors.OKGREEN}{self.data['coins']}{Colors.ENDC}")
-            print(f"⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} ({exp_percent:.1f}%)")
-            print(f"✨ EXP: [{exp_bar}] {self.data['exp']}/{exp_needed}")
-            print(f"🎒 Túi đồ: {len(self.data['inventory'])} vật phẩm")
-            print(f"🔥 Daily Streak: {Colors.WARNING}{self.data['daily_streak']} ngày{Colors.ENDC}")
-            print(f"⚔️  Đội hình: {len(self.data['team'])}/3 pet")
+            print(f"\n{Colors.BOLD}╔══════════════════════════════════════════════════════════════════╗{Colors.ENDC}")
+            print(f"{Colors.BOLD}║  TÌNH TRẠNG TÀI KHOẢN                                            ║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  💰 Coins:        {Colors.OKGREEN}{Colors.BOLD}{self.data['coins']:>10}{Colors.ENDC}                                    {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  ⭐ Level:        {Colors.BOLD}{self.data['level']:>10}{Colors.ENDC}  ({exp_percent:>5.1f}%)                        {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  ✨ EXP:          [{Colors.OKCYAN}{exp_bar}{Colors.ENDC}] {self.data['exp']}/{exp_needed}           {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  🎒 Túi đồ:       {Colors.BOLD}{len(self.data['inventory']):>10}{Colors.ENDC} vật phẩm                           {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  🔥 Streak:       {Colors.WARNING}{Colors.BOLD}{self.data['daily_streak']:>10}{Colors.ENDC}{Colors.WARNING} ngày{Colors.ENDC}                              {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  ⚔️  Đội hình:     {Colors.BOLD}{len(self.data['team']):>10}/3{Colors.ENDC} pets                            {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╚══════════════════════════════════════════════════════════════════╝{Colors.ENDC}")
             
-            print(f"\n{Colors.BOLD}📈 THỐNG KÊ:{Colors.ENDC}")
-            print(f"  • Tổng coins kiếm được: {self.data['stats']['total_coins_earned']}")
-            print(f"  • Số ngày chơi: {self.data['stats']['days_played']}")
-            print(f"  • Trận thắng: {self.data['stats']['battles_won']}")
-            print(f"  • Động vật đã bắt: {self.data['stats']['animals_caught']}")
-            print(f"  • Tổng lần nhận daily: {self.data['total_daily_collected']}")
+            print(f"\n{Colors.BOLD}╔══════════════════════════════════════════════════════════════════╗{Colors.ENDC}")
+            print(f"{Colors.BOLD}║  THỐNG KÊ GAME                                                    ║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╠══════════════════════════════════════════════════════════════════╣{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  💵 Tổng coins kiếm:      {Colors.OKGREEN}{self.data['stats']['total_coins_earned']:>10}{Colors.ENDC}                      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  📅 Số ngày chơi:         {Colors.BOLD}{self.data['stats']['days_played']:>10}{Colors.ENDC}                      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  🏆 Trận thắng:           {Colors.OKGREEN}{self.data['stats']['battles_won']:>10}{Colors.ENDC}                      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  🦁 Động vật đã bắt:      {Colors.BOLD}{self.data['stats']['animals_caught']:>10}{Colors.ENDC}                      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}║{Colors.ENDC}  🎁 Tổng lần nhận daily:  {Colors.BOLD}{self.data['total_daily_collected']:>10}{Colors.ENDC}                      {Colors.BOLD}║{Colors.ENDC}")
+            print(f"{Colors.BOLD}╚══════════════════════════════════════════════════════════════════╝{Colors.ENDC}")
             
             input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
             
@@ -1511,7 +1532,7 @@ def show_rarity_table():
                 print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
                 
                 reward_coins = random.randint(50, 150)
-                reward_exp = random.randint(30, 80)
+                reward_exp = random.randint(5, 10)  # Người chơi chỉ nhận 5-10 EXP
                 
                 self.data["coins"] += reward_coins
                 self.data["exp"] += reward_exp
@@ -1527,21 +1548,28 @@ def show_rarity_table():
                     level_up_count += 1
                     exp_needed = self.get_exp_needed(self.data['level'])
                 
-                print(f"\n{Colors.BOLD}🎁 PHẦN THƯỞNG NGƯỜI CHƠI:{Colors.ENDC}")
-                print(f"💰 +{reward_coins} coins")
-                print(f"⭐ +{reward_exp} EXP")
+                print(f"\n{Colors.BOLD}{'─' * 70}{Colors.ENDC}")
+                print(f"{Colors.BOLD}💎 PHẦN THƯỞNG NGƯỜI CHƠI{Colors.ENDC}")
+                print(f"{Colors.BOLD}{'─' * 70}{Colors.ENDC}")
+                print(f"💰 Coins: {Colors.OKGREEN}+{reward_coins}{Colors.ENDC}")
+                print(f"⭐ EXP:   {Colors.OKCYAN}+{reward_exp}{Colors.ENDC}")
                 
                 if level_up_count > 0:
-                    print(f"\n{Colors.WARNING}🎊 PLAYER LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                    print(f"\n{Colors.WARNING}{'🎊 ' * 35}{Colors.ENDC}")
+                    print(f"{Colors.WARNING}{Colors.BOLD}   PLAYER LEVEL UP x{level_up_count}! BẠN ĐẠT LEVEL {self.data['level']}!{Colors.ENDC}")
+                    print(f"{Colors.WARNING}{'🎊 ' * 35}{Colors.ENDC}")
                 
                 # Thêm EXP cho các pets tham gia chiến đấu
-                print(f"\n{Colors.BOLD}✨ EXP CHO PETS:{Colors.ENDC}")
+                print(f"\n{Colors.BOLD}{'─' * 70}{Colors.ENDC}")
+                print(f"{Colors.BOLD}✨ KINH NGHIỆM CHO THÚ CƯNG{Colors.ENDC}")
+                print(f"{Colors.BOLD}{'─' * 70}{Colors.ENDC}")
+                
                 pet_level_ups = {}
                 
                 for pet in player_team:
                     if pet['hp'] > 0:  # Chỉ pets còn sống nhận EXP
                         pet_name = pet['name']
-                        # EXP ngẫu nhiên 20-100 cho mỗi pet
+                        # EXP ngẫu nhiên 20-100 cho mỗi pet (không giới hạn)
                         pet_exp_gain = random.randint(20, 100)
                         
                         # Thêm EXP cho pet
@@ -1553,13 +1581,21 @@ def show_rarity_table():
                                 "new_level": self.get_pet_level(pet_name)
                             }
                         
-                        print(f"  {pet['emoji']} {pet_name.capitalize()}: +{pet_exp_gain} EXP", end="")
+                        animal_data = self.get_animal_data(pet_name)
+                        emoji = animal_data['emoji'] if animal_data else "❓"
+                        
+                        print(f"  {emoji} {Colors.BOLD}{pet_name.capitalize():<12}{Colors.ENDC}", end="")
+                        print(f" | +{Colors.OKCYAN}{pet_exp_gain:>3}{Colors.ENDC} EXP", end="")
+                        
                         if level_ups > 0:
-                            print(f" {Colors.WARNING}→ LEVEL UP x{level_ups}! (Lv.{pet_level_ups[pet_name]['new_level']}){Colors.ENDC}")
+                            print(f" {Colors.WARNING}→ ⬆️ LEVEL UP x{level_ups}!{Colors.ENDC} {Colors.BOLD}(Lv.{pet_level_ups[pet_name]['new_level']}){Colors.ENDC}")
                         else:
                             current_exp = self.get_pet_exp(pet_name)
                             needed_exp = self.get_pet_exp_needed(pet_name)
-                            print(f" ({current_exp}/{needed_exp})")
+                            progress = (current_exp / needed_exp) * 100
+                            print(f" | {Colors.GRAY}EXP: {current_exp}/{needed_exp} ({progress:.1f}%){Colors.ENDC}")
+                
+                print(f"{Colors.BOLD}{'─' * 70}{Colors.ENDC}")
                 
                 self.save_data()
                 
@@ -1656,20 +1692,32 @@ def show_rarity_table():
             while True:
                 try:
                     clear_screen()
-                    exp_percent = self.get_exp_percent()
+                    
+                    # Header đẹp
                     print(Colors.OKCYAN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
-                    print(Colors.OKCYAN + "║" + " " * 29 + "MENU CHÍNH" + " " * 29 + "║" + Colors.ENDC)
+                    print(Colors.OKCYAN + "║" + Colors.BOLD + " " * 22 + "🎮 GAME PHIÊU LƯU THÚ CƯNG 🎮" + " " * 17 + Colors.ENDC + Colors.OKCYAN + "║" + Colors.ENDC)
                     print(Colors.OKCYAN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
                     
-                    print(f"\n💰 Coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC} | ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} ({exp_percent:.1f}%) | 🔥 Streak: {Colors.WARNING}{self.data['daily_streak']}{Colors.ENDC}")
-                    print("\n1. 📊 Xem thông tin")
-                    print("2. 🏪 Cửa hàng")
-                    print("3. ⚔️  Chiến đấu")
-                    print("4. 🎁 Nhận daily")
-                    print("5. 🎣 Săn bắt")
-                    print("6. 🦁 Sở thú")
-                    print("7. ⚔️  Thiết lập đội")
-                    print("0. 🚪 Thoát game")
+                    # Thông tin người chơi
+                    exp_percent = self.get_exp_percent()
+                    exp_needed = self.get_exp_needed(self.data['level'])
+                    exp_bar_length = 20
+                    exp_bar_filled = int((self.data['exp'] / exp_needed) * exp_bar_length)
+                    exp_bar = "█" * exp_bar_filled + "░" * (exp_bar_length - exp_bar_filled)
+                    
+                    print(f"\n{Colors.BOLD}┌─ THÔNG TIN NGƯỜI CHƠI {'─' * 45}┐{Colors.ENDC}")
+                    print(f"{Colors.BOLD}│{Colors.ENDC} 💰 Coins: {Colors.OKGREEN}{Colors.BOLD}{self.data['coins']:>8}{Colors.ENDC}  │  ⭐ Level: {Colors.BOLD}{self.data['level']:>3}{Colors.ENDC}  │  🔥 Streak: {Colors.WARNING}{self.data['daily_streak']:>3} ngày{Colors.ENDC}")
+                    print(f"{Colors.BOLD}│{Colors.ENDC} ✨ EXP: [{Colors.OKCYAN}{exp_bar}{Colors.ENDC}] {self.data['exp']}/{exp_needed} ({exp_percent:.1f}%)")
+                    print(f"{Colors.BOLD}└{'─' * 68}┘{Colors.ENDC}")
+                    
+                    # Menu với box đẹp
+                    print(f"\n{Colors.BOLD}╔══════════════════════ MENU CHÍNH ═══════════════════════╗{Colors.ENDC}")
+                    print(f"{Colors.BOLD}║{Colors.ENDC}  {Colors.OKBLUE}1.{Colors.ENDC} 📊 Xem thông tin    {Colors.BOLD}│{Colors.ENDC}  {Colors.OKBLUE}5.{Colors.ENDC} 🎣 Săn bắt            {Colors.BOLD}║{Colors.ENDC}")
+                    print(f"{Colors.BOLD}║{Colors.ENDC}  {Colors.OKBLUE}2.{Colors.ENDC} 🏪 Cửa hàng        {Colors.BOLD}│{Colors.ENDC}  {Colors.OKBLUE}6.{Colors.ENDC} 🦁 Sở thú            {Colors.BOLD}║{Colors.ENDC}")
+                    print(f"{Colors.BOLD}║{Colors.ENDC}  {Colors.OKBLUE}3.{Colors.ENDC} ⚔️  Chiến đấu        {Colors.BOLD}│{Colors.ENDC}  {Colors.OKBLUE}7.{Colors.ENDC} ⚔️  Thiết lập đội      {Colors.BOLD}║{Colors.ENDC}")
+                    print(f"{Colors.BOLD}║{Colors.ENDC}  {Colors.OKBLUE}4.{Colors.ENDC} 🎁 Nhận daily       {Colors.BOLD}│{Colors.ENDC}  {Colors.FAIL}0.{Colors.ENDC} 🚪 Thoát game         {Colors.BOLD}║{Colors.ENDC}")
+                    print(f"{Colors.BOLD}╚══════════════════════════════════════════════════════════╝{Colors.ENDC}")
+                    print(f"\n{Colors.GRAY}💡 Mẹo: Nhập 'xoadulieu' để reset game về ban đầu{Colors.ENDC}")
                     
                     choice = input(f"\n{Colors.OKCYAN}👉 Nhập lựa chọn: {Colors.ENDC}").strip().lower()
                     
