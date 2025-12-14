@@ -72,6 +72,23 @@ ANIMALS = {
     "Hidden": []
 }
 
+# Yêu cầu EXP để level up theo độ hiếm
+RARITY_EXP_REQUIREMENTS = {
+    "Common": 50,        # Common cần 50 exp mỗi level
+    "Uncommon": 75,      # Uncommon cần 75 exp mỗi level
+    "Rare": 100,         # Rare cần 100 exp mỗi level
+    "Epic": 150,
+    "Mythical": 200,
+    "Patreon": 250,
+    "Custom Patreon": 300,
+    "Legendary": 350,
+    "Gem": 400,
+    "Bot Distorted": 450,
+    "Fabled": 500,
+    "Special": 550,
+    "Hidden": 600
+}
+
 def check_requirements():
     """Kiểm tra yêu cầu hệ thống trước khi chạy game"""
     print(Colors.OKCYAN + "=" * 70 + Colors.ENDC)
@@ -183,7 +200,31 @@ def loading_animation(text="Loading", duration=1):
         i += 1
     print("\r" + " " * 50 + "\r", end='')
 
-class Game:
+def show_rarity_table():
+    """Hiển thị bảng phân loại độ hiếm"""
+    print(f"\n{Colors.BOLD}{'═' * 70}{Colors.ENDC}")
+    print(f"{Colors.BOLD}📊 BẢNG PHÂN LOẠI ĐỘ HIẾM{Colors.ENDC}")
+    print(f"{Colors.BOLD}{'═' * 70}{Colors.ENDC}")
+    
+    rarity_info = {
+        "Common": {"color": Colors.GRAY, "exp_req": 50, "icon": "⚪"},
+        "Uncommon": {"color": Colors.OKGREEN, "exp_req": 75, "icon": "🟢"},
+        "Rare": {"color": Colors.OKBLUE, "exp_req": 100, "icon": "🔵"},
+        "Epic": {"color": Colors.HEADER, "exp_req": 150, "icon": "🟣"},
+        "Mythical": {"color": Colors.WARNING, "exp_req": 200, "icon": "🟠"},
+        "Legendary": {"color": Colors.FAIL, "exp_req": 350, "icon": "🔴"}
+    }
+    
+    for rarity, info in rarity_info.items():
+        animals_in_rarity = ANIMALS.get(rarity, [])
+        count = len(animals_in_rarity)
+        color = info["color"]
+        icon = info["icon"]
+        exp_req = info["exp_req"]
+        
+        print(f"{icon} {color}{rarity:<15}{Colors.ENDC} | EXP/Level: {Colors.BOLD}{exp_req:>3}{Colors.ENDC} | Số loài: {Colors.BOLD}{count:>2}{Colors.ENDC}")
+    
+    print(f"{Colors.BOLD}{'═' * 70}{Colors.ENDC}\n")class Game:
     def __init__(self):
         try:
             self.data = self.load_data()
@@ -228,6 +269,8 @@ class Game:
                         data["zoo"] = {}
                     if "team" not in data:
                         data["team"] = []
+                    if "pet_data" not in data:
+                        data["pet_data"] = {}
                     if "stats" not in data:
                         data["stats"] = {}
                     if "animals_caught" not in data["stats"]:
@@ -258,6 +301,7 @@ class Game:
             "total_daily_collected": 0,
             "inventory": [],
             "zoo": {},
+            "pet_data": {},  # Lưu level và exp của từng pet: {"bee": {"level": 1, "exp": 0}, ...}
             "team": [],  # Đội hình tối đa 3 pet
             "stats": {
                 "total_coins_earned": 0,
@@ -429,8 +473,24 @@ class Game:
                 self.data["zoo"][animal_name] += 1
             else:
                 self.data["zoo"][animal_name] = 1
+                # Khởi tạo pet_data cho pet mới
+                if animal_name not in self.data["pet_data"]:
+                    self.data["pet_data"][animal_name] = {"level": 1, "exp": 0}
             
             self.data["stats"]["animals_caught"] += 1
+            
+            # Thêm EXP cho người chơi khi săn bắt
+            hunt_exp = random.randint(5, 15)
+            self.data["exp"] += hunt_exp
+            
+            # Check level up người chơi
+            player_level_up = 0
+            exp_needed = self.get_exp_needed(self.data['level'])
+            while self.data["exp"] >= exp_needed:
+                self.data["level"] += 1
+                self.data["exp"] -= exp_needed
+                player_level_up += 1
+                exp_needed = self.get_exp_needed(self.data['level'])
             
             # Lưu ngay sau khi bắt được
             self.save_data()
@@ -451,6 +511,10 @@ class Game:
             print(f"✨ Độ hiếm: {color}{rarity}{Colors.ENDC}")
             print(f"📊 Số lượng hiện có: {Colors.BOLD}{self.data['zoo'][animal_name]}{Colors.ENDC}")
             print(f"💰 Coins còn lại: {self.data['coins']}")
+            print(f"⭐ EXP nhận được: {Colors.OKCYAN}+{hunt_exp}{Colors.ENDC}")
+            
+            if player_level_up > 0:
+                print(f"\n{Colors.WARNING}🎊 LEVEL UP x{player_level_up}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
             
             input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
             
@@ -484,6 +548,53 @@ class Game:
                 if animal["name"] == animal_name:
                     return animal
         return None
+    
+    def get_animal_rarity(self, animal_name):
+        """Lấy độ hiếm của động vật"""
+        for rarity, animals in ANIMALS.items():
+            for animal in animals:
+                if animal["name"] == animal_name:
+                    return rarity
+        return "Common"
+    
+    def get_pet_level(self, animal_name):
+        """Lấy level của pet"""
+        if animal_name not in self.data["pet_data"]:
+            self.data["pet_data"][animal_name] = {"level": 1, "exp": 0}
+            self.auto_save()
+        return self.data["pet_data"][animal_name]["level"]
+    
+    def get_pet_exp(self, animal_name):
+        """Lấy EXP của pet"""
+        if animal_name not in self.data["pet_data"]:
+            self.data["pet_data"][animal_name] = {"level": 1, "exp": 0}
+            self.auto_save()
+        return self.data["pet_data"][animal_name]["exp"]
+    
+    def get_pet_exp_needed(self, animal_name):
+        """Tính EXP cần để pet lên level"""
+        rarity = self.get_animal_rarity(animal_name)
+        return RARITY_EXP_REQUIREMENTS.get(rarity, 50)
+    
+    def add_pet_exp(self, animal_name, exp_amount):
+        """Thêm EXP cho pet và check level up"""
+        if animal_name not in self.data["pet_data"]:
+            self.data["pet_data"][animal_name] = {"level": 1, "exp": 0}
+        
+        self.data["pet_data"][animal_name]["exp"] += exp_amount
+        
+        # Check level up
+        level_up_count = 0
+        exp_needed = self.get_pet_exp_needed(animal_name)
+        
+        while self.data["pet_data"][animal_name]["exp"] >= exp_needed:
+            self.data["pet_data"][animal_name]["level"] += 1
+            self.data["pet_data"][animal_name]["exp"] -= exp_needed
+            level_up_count += 1
+            exp_needed = self.get_pet_exp_needed(animal_name)
+        
+        self.auto_save()
+        return level_up_count
     
     def calculate_real_stats(self, animal_name, level):
         """Tính toán stats thực tế dựa trên level với công thức chính xác"""
@@ -703,6 +814,9 @@ class Game:
             print(Colors.WARNING + "║" + " " * 27 + "💰 BÁN ĐỘNG VẬT" + " " * 26 + "║" + Colors.ENDC)
             print(Colors.WARNING + "╚" + "═" * 68 + "╝" + Colors.ENDC)
             
+            # Hiển thị bảng độ hiếm
+            show_rarity_table()
+            
             if not self.data["zoo"]:
                 print(f"\n{Colors.FAIL}❌ Bạn chưa có động vật nào để bán!{Colors.ENDC}")
                 input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
@@ -710,23 +824,43 @@ class Game:
             
             print(f"\n{Colors.BOLD}Động vật của bạn:{Colors.ENDC}\n")
             
-            # Hiển thị động vật có thể bán
+            # Hiển thị động vật có thể bán theo độ hiếm
             animal_list = []
-            for animal_name, count in self.data["zoo"].items():
-                # Tìm emoji và giá bán
-                emoji = "❓"
-                sell_price = 1
-                for rarity, animals in ANIMALS.items():
-                    for animal in animals:
-                        if animal["name"] == animal_name:
-                            emoji = animal["emoji"]
-                            sell_price = animal["sell_price"]
-                            break
+            for rarity in ["Common", "Uncommon", "Rare", "Epic", "Mythical", "Legendary"]:
+                animals_in_rarity = []
+                for animal_name, count in self.data["zoo"].items():
+                    if self.get_animal_rarity(animal_name) == rarity:
+                        animals_in_rarity.append((animal_name, count))
                 
-                print(f"  {emoji} {animal_name.capitalize():<15} x{count} (Giá: {sell_price} coin/con)")
-                animal_list.append(animal_name)
+                if animals_in_rarity:
+                    rarity_colors = {
+                        "Common": Colors.GRAY,
+                        "Uncommon": Colors.OKGREEN,
+                        "Rare": Colors.OKBLUE,
+                        "Epic": Colors.HEADER,
+                        "Mythical": Colors.WARNING,
+                        "Legendary": Colors.FAIL
+                    }
+                    color = rarity_colors.get(rarity, Colors.ENDC)
+                    print(f"{color}【{rarity}】{Colors.ENDC}")
+                    
+                    for animal_name, count in animals_in_rarity:
+                        emoji = "❓"
+                        sell_price = 1
+                        pet_level = self.get_pet_level(animal_name)
+                        
+                        for r, animals in ANIMALS.items():
+                            for animal in animals:
+                                if animal["name"] == animal_name:
+                                    emoji = animal["emoji"]
+                                    sell_price = animal["sell_price"]
+                                    break
+                        
+                        print(f"  {emoji} {animal_name.capitalize():<15} x{count} (Lv.{pet_level}) | Giá: {sell_price} coin/con")
+                        animal_list.append(animal_name)
+                    print()
             
-            print(f"\n0. Quay lại")
+            print(f"0. Quay lại")
             
             animal_name = input(f"\n{Colors.OKCYAN}👉 Nhập tên động vật muốn bán: {Colors.ENDC}").strip().lower()
             
@@ -803,6 +937,174 @@ class Game:
             self.show_error("Lỗi khi bán động vật", e)
     
     def manage_team(self):
+        """Quản lý đội hình"""
+        try:
+            while True:
+                clear_screen()
+                print(Colors.HEADER + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.HEADER + "║" + " " * 26 + "⚔️  THIẾT LẬP ĐỘI" + " " * 25 + "║" + Colors.ENDC)
+                print(Colors.HEADER + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                
+                # Hiển thị bảng độ hiếm
+                show_rarity_table()
+                
+                print(f"\n{Colors.BOLD}Đội hình hiện tại ({len(self.data['team'])}/3):{Colors.ENDC}\n")
+                
+                if self.data["team"]:
+                    for i, animal_name in enumerate(self.data["team"], 1):
+                        animal_data = self.get_animal_data(animal_name)
+                        if animal_data:
+                            pet_level = self.get_pet_level(animal_name)
+                            pet_exp = self.get_pet_exp(animal_name)
+                            exp_needed = self.get_pet_exp_needed(animal_name)
+                            stats = self.calculate_real_stats(animal_name, pet_level)
+                            rarity = self.get_animal_rarity(animal_name)
+                            
+                            rarity_colors = {
+                                "Common": Colors.GRAY,
+                                "Uncommon": Colors.OKGREEN,
+                                "Rare": Colors.OKBLUE
+                            }
+                            color = rarity_colors.get(rarity, Colors.ENDC)
+                            
+                            print(f"  {i}. {animal_data['emoji']} {color}{animal_name.capitalize()}{Colors.ENDC} (Lv.{pet_level}) EXP: {pet_exp}/{exp_needed}")
+                            print(f"      HP: {stats['hp']} | ATK: {stats['atk']} | MAG: {stats['mag']}")
+                else:
+                    print(f"  {Colors.GRAY}(Đội trống){Colors.ENDC}")
+                
+                print(f"\n1. ➕ Thêm pet vào đội")
+                print(f"2. ➖ Xóa pet khỏi đội")
+                print(f"0. Quay lại")
+                
+                choice = input(f"\n{Colors.OKCYAN}👉 Chọn: {Colors.ENDC}").strip()
+                
+                if choice == "1":
+                    if len(self.data["team"]) >= 3:
+                        print(f"\n{Colors.FAIL}❌ Đội đã đầy (tối đa 3 pet)!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    if not self.data["zoo"]:
+                        print(f"\n{Colors.FAIL}❌ Bạn chưa có động vật nào!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    clear_screen()
+                    print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.OKGREEN + "║" + " " * 25 + "➕ THÊM PET VÀO ĐỘI" + " " * 24 + "║" + Colors.ENDC)
+                    print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    show_rarity_table()
+                    
+                    print(f"\n{Colors.BOLD}Động vật có sẵn:{Colors.ENDC}\n")
+                    
+                    available_animals = []
+                    index = 1
+                    
+                    # Hiển thị theo độ hiếm
+                    for rarity in ["Common", "Uncommon", "Rare", "Epic", "Mythical", "Legendary"]:
+                        animals_in_rarity = []
+                        for animal_name in self.data["zoo"].keys():
+                            if animal_name not in self.data["team"] and self.get_animal_rarity(animal_name) == rarity:
+                                animals_in_rarity.append(animal_name)
+                        
+                        if animals_in_rarity:
+                            rarity_colors = {
+                                "Common": Colors.GRAY,
+                                "Uncommon": Colors.OKGREEN,
+                                "Rare": Colors.OKBLUE,
+                                "Epic": Colors.HEADER,
+                                "Mythical": Colors.WARNING,
+                                "Legendary": Colors.FAIL
+                            }
+                            color = rarity_colors.get(rarity, Colors.ENDC)
+                            print(f"{color}【{rarity}】{Colors.ENDC}")
+                            
+                            for animal_name in animals_in_rarity:
+                                animal_data = self.get_animal_data(animal_name)
+                                if animal_data:
+                                    pet_level = self.get_pet_level(animal_name)
+                                    stats = self.calculate_real_stats(animal_name, pet_level)
+                                    print(f"{index}. {animal_data['emoji']} {animal_name.capitalize()} (Lv.{pet_level}) - HP: {stats['hp']} | ATK: {stats['atk']}")
+                                    available_animals.append(animal_name)
+                                    index += 1
+                            print()
+                    
+                    if not available_animals:
+                        print(f"\n{Colors.GRAY}Tất cả động vật đã ở trong đội!{Colors.ENDC}")
+                        input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                        continue
+                    
+                    print(f"0. Hủy")
+                    
+                    try:
+                        pet_choice = input(f"\n{Colors.OKCYAN}👉 Chọn pet (số): {Colors.ENDC}").strip()
+                        
+                        if pet_choice == "0":
+                            continue
+                        
+                        pet_idx = int(pet_choice) - 1
+                        if 0 <= pet_idx < len(available_animals):
+                            selected_pet = available_animals[pet_idx]
+                            self.data["team"].append(selected_pet)
+                            self.save_data()
+                            print(f"\n{Colors.OKGREEN}✅ Đã thêm {selected_pet} vào đội!{Colors.ENDC}")
+                            time.sleep(1.5)
+                        else:
+                            print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                            time.sleep(1.5)
+                    except ValueError:
+                        print(f"\n{Colors.FAIL}❌ Vui lòng nhập số!{Colors.ENDC}")
+                        time.sleep(1.5)
+                
+                elif choice == "2":
+                    if not self.data["team"]:
+                        print(f"\n{Colors.FAIL}❌ Đội đang trống!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    clear_screen()
+                    print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.FAIL + "║" + " " * 25 + "➖ XÓA PET KHỎI ĐỘI" + " " * 24 + "║" + Colors.ENDC)
+                    print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    print(f"\n{Colors.BOLD}Pet trong đội:{Colors.ENDC}\n")
+                    
+                    for i, animal_name in enumerate(self.data["team"], 1):
+                        animal_data = self.get_animal_data(animal_name)
+                        if animal_data:
+                            pet_level = self.get_pet_level(animal_name)
+                            print(f"{i}. {animal_data['emoji']} {animal_name.capitalize()} (Lv.{pet_level})")
+                    
+                    print(f"\n0. Hủy")
+                    
+                    try:
+                        remove_choice = input(f"\n{Colors.OKCYAN}👉 Chọn pet cần xóa (số): {Colors.ENDC}").strip()
+                        
+                        if remove_choice == "0":
+                            continue
+                        
+                        remove_idx = int(remove_choice) - 1
+                        if 0 <= remove_idx < len(self.data["team"]):
+                            removed_pet = self.data["team"].pop(remove_idx)
+                            self.save_data()
+                            print(f"\n{Colors.OKGREEN}✅ Đã xóa {removed_pet} khỏi đội!{Colors.ENDC}")
+                            time.sleep(1.5)
+                        else:
+                            print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                            time.sleep(1.5)
+                    except ValueError:
+                        print(f"\n{Colors.FAIL}❌ Vui lòng nhập số!{Colors.ENDC}")
+                        time.sleep(1.5)
+                
+                elif choice == "0":
+                    return
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(1)
+                    
+        except Exception as e:
+            self.show_error("Lỗi khi quản lý đội hình", e)
         """Quản lý đội hình"""
         try:
             while True:
@@ -1029,10 +1331,13 @@ class Game:
             
             # Tạo đội mình
             player_team = []
+            total_player_level = 0
             for animal_name in self.data["team"]:
                 animal_data = self.get_animal_data(animal_name)
                 if animal_data:
-                    stats = self.calculate_real_stats(animal_name, self.data['level'])
+                    pet_level = self.get_pet_level(animal_name)
+                    total_player_level += pet_level
+                    stats = self.calculate_real_stats(animal_name, pet_level)
                     player_team.append({
                         "name": animal_name,
                         "emoji": animal_data['emoji'],
@@ -1042,11 +1347,10 @@ class Game:
                         "mag": stats['mag'],
                         "pr_percent": stats['pr_percent'],
                         "mr_percent": stats['mr_percent'],
-                        "level": self.data['level']
+                        "level": pet_level
                     })
             
             # Tính tổng level của đội mình
-            total_player_level = len(player_team) * self.data['level']
             max_enemy_level = total_player_level + 3
             
             # Tạo đội địch ngẫu nhiên
@@ -1066,7 +1370,8 @@ class Game:
                     # Random level sao cho tổng không vượt quá
                     remaining_slots = enemy_count - i
                     max_this_level = (max_enemy_level - enemy_total_level) // remaining_slots if remaining_slots > 0 else 1
-                    enemy_level = random.randint(max(1, self.data['level'] - 2), max(1, max_this_level))
+                    avg_player_level = total_player_level // len(player_team) if player_team else 1
+                    enemy_level = random.randint(max(1, avg_player_level - 2), max(1, max_this_level))
                     enemy_total_level += enemy_level
                     
                     stats = self.calculate_real_stats(enemy_animal['name'], enemy_level)
@@ -1213,7 +1518,7 @@ class Game:
                 self.data["stats"]["battles_won"] += 1
                 self.data["stats"]["total_coins_earned"] += reward_coins
                 
-                # Check level up
+                # Check level up người chơi
                 level_up_count = 0
                 exp_needed = self.get_exp_needed(self.data['level'])
                 while self.data["exp"] >= exp_needed:
@@ -1222,11 +1527,39 @@ class Game:
                     level_up_count += 1
                     exp_needed = self.get_exp_needed(self.data['level'])
                 
-                print(f"\n💰 +{reward_coins} coins")
+                print(f"\n{Colors.BOLD}🎁 PHẦN THƯỞNG NGƯỜI CHƠI:{Colors.ENDC}")
+                print(f"💰 +{reward_coins} coins")
                 print(f"⭐ +{reward_exp} EXP")
                 
                 if level_up_count > 0:
-                    print(f"\n{Colors.WARNING}🎊 LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                    print(f"\n{Colors.WARNING}🎊 PLAYER LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
+                
+                # Thêm EXP cho các pets tham gia chiến đấu
+                print(f"\n{Colors.BOLD}✨ EXP CHO PETS:{Colors.ENDC}")
+                pet_level_ups = {}
+                
+                for pet in player_team:
+                    if pet['hp'] > 0:  # Chỉ pets còn sống nhận EXP
+                        pet_name = pet['name']
+                        # EXP ngẫu nhiên 20-100 cho mỗi pet
+                        pet_exp_gain = random.randint(20, 100)
+                        
+                        # Thêm EXP cho pet
+                        level_ups = self.add_pet_exp(pet_name, pet_exp_gain)
+                        
+                        if level_ups > 0:
+                            pet_level_ups[pet_name] = {
+                                "level_ups": level_ups,
+                                "new_level": self.get_pet_level(pet_name)
+                            }
+                        
+                        print(f"  {pet['emoji']} {pet_name.capitalize()}: +{pet_exp_gain} EXP", end="")
+                        if level_ups > 0:
+                            print(f" {Colors.WARNING}→ LEVEL UP x{level_ups}! (Lv.{pet_level_ups[pet_name]['new_level']}){Colors.ENDC}")
+                        else:
+                            current_exp = self.get_pet_exp(pet_name)
+                            needed_exp = self.get_pet_exp_needed(pet_name)
+                            print(f" ({current_exp}/{needed_exp})")
                 
                 self.save_data()
                 
@@ -1248,6 +1581,68 @@ class Game:
             
         except Exception as e:
             self.show_error("Lỗi trong chiến đấu", e)
+    
+    def reset_data(self):
+        """Reset tất cả dữ liệu về ban đầu"""
+        try:
+            clear_screen()
+            print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+            print(Colors.FAIL + "║" + " " * 24 + "⚠️  RESET DỮ LIỆU  ⚠️" + " " * 23 + "║" + Colors.ENDC)
+            print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+            
+            print(f"\n{Colors.WARNING}{Colors.BOLD}CẢNH BÁO:{Colors.ENDC}")
+            print(f"{Colors.WARNING}Thao tác này sẽ XÓA TOÀN BỘ dữ liệu game của bạn!{Colors.ENDC}")
+            print(f"\n{Colors.GRAY}Bao gồm:{Colors.ENDC}")
+            print(f"  • Level và EXP người chơi")
+            print(f"  • Tất cả coins")
+            print(f"  • Toàn bộ động vật trong sở thú")
+            print(f"  • Level và EXP của tất cả pets")
+            print(f"  • Đội hình")
+            print(f"  • Daily streak")
+            print(f"  • Vật phẩm trong túi")
+            print(f"  • Tất cả thống kê")
+            
+            print(f"\n{Colors.FAIL}Hành động này KHÔNG THỂ HOÀN TÁC!{Colors.ENDC}")
+            
+            confirm1 = input(f"\n{Colors.WARNING}Bạn có chắc chắn muốn reset? (yes/no): {Colors.ENDC}").strip().lower()
+            
+            if confirm1 == "yes":
+                confirm2 = input(f"{Colors.FAIL}Nhập 'RESET' (viết hoa) để xác nhận: {Colors.ENDC}").strip()
+                
+                if confirm2 == "RESET":
+                    loading_animation("Đang reset dữ liệu", 2)
+                    
+                    # Xóa file dữ liệu
+                    if os.path.exists(DATA_FILE):
+                        os.remove(DATA_FILE)
+                    
+                    # Tạo dữ liệu mới
+                    self.data = self.create_new_data()
+                    self.save_data()
+                    
+                    clear_screen()
+                    print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.OKGREEN + "║" + " " * 23 + "✅ RESET THÀNH CÔNG!" + " " * 24 + "║" + Colors.ENDC)
+                    print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    print(f"\n{Colors.BOLD}Dữ liệu đã được reset về ban đầu!{Colors.ENDC}")
+                    print(f"\n💰 Coins: {self.data['coins']}")
+                    print(f"⭐ Level: {self.data['level']}")
+                    print(f"🦁 Sở thú: Trống")
+                    print(f"⚔️  Đội hình: Trống")
+                    
+                    print(f"\n{Colors.OKGREEN}Bạn có thể nhận daily reward ngay bây giờ!{Colors.ENDC}")
+                    
+                    input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                else:
+                    print(f"\n{Colors.GRAY}❌ Xác nhận không đúng. Đã hủy reset.{Colors.ENDC}")
+                    time.sleep(1.5)
+            else:
+                print(f"\n{Colors.GRAY}Đã hủy reset.{Colors.ENDC}")
+                time.sleep(1.5)
+                
+        except Exception as e:
+            self.show_error("Lỗi khi reset dữ liệu", e)
     
     def run(self):
         """Chạy game"""
@@ -1292,6 +1687,8 @@ class Game:
                         self.show_zoo()
                     elif choice == "7":
                         self.manage_team()
+                    elif choice == "xoadulieu":
+                        self.reset_data()
                     elif choice == "0":
                         clear_screen()
                         print_with_effect("👋 Tạm biệt! Hẹn gặp lại!", 0.03, Colors.OKGREEN)
