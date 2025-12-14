@@ -289,18 +289,18 @@ class Game:
         """Tính toán phần thưởng dựa trên streak"""
         if 1 <= streak <= 20:
             coins = random.randint(100, 500)
-            exp = random.uniform(1, 5)
+            exp = random.randint(1, 5)
         elif 21 <= streak <= 60:
             coins = random.randint(450, 1200)
-            exp = random.uniform(4.5, 10)
+            exp = random.randint(5, 10)
         elif 61 <= streak <= 74:
             coins = random.randint(1150, 2500)
-            exp = random.uniform(9.85, 19)
+            exp = random.randint(10, 19)
         else:  # 75+
             coins = random.randint(2450, 3500)
-            exp = random.uniform(20, 29.5)
+            exp = random.randint(20, 30)
         
-        return coins, round(exp, 2)
+        return coins, exp
     
     def check_daily_reward(self):
         """Kiểm tra và nhận phần thưởng hàng ngày"""
@@ -380,7 +380,7 @@ class Game:
             print(f"\n{Colors.BOLD}💼 Trạng thái tài khoản:{Colors.ENDC}")
             print(f"   💰 Tổng coins: {Colors.BOLD}{self.data['coins']}{Colors.ENDC}")
             print(f"   ⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} ({exp_percent:.1f}%)")
-            print(f"   ✨ EXP: {Colors.BOLD}{self.data['exp']:.2f}/{exp_needed}{Colors.ENDC}")
+            print(f"   ✨ EXP: {Colors.BOLD}{self.data['exp']}/{exp_needed}{Colors.ENDC}")
             
             if level_up_count > 0:
                 print(f"\n{Colors.WARNING}🎊 LEVEL UP x{level_up_count}! Bạn đạt Level {self.data['level']}!{Colors.ENDC}")
@@ -486,22 +486,55 @@ class Game:
         return None
     
     def calculate_real_stats(self, animal_name, level):
-        """Tính toán stats thực tế dựa trên level"""
+        """Tính toán stats thực tế dựa trên level với công thức chính xác"""
         animal_data = self.get_animal_data(animal_name)
         if not animal_data:
-            return {"hp": 10, "atk": 5, "pr": 1, "wp": 1, "mag": 1, "mr": 1}
+            return {
+                "hp": 500,
+                "atk": 100,
+                "pr": 0,
+                "pr_percent": 0,
+                "wp": 500,
+                "mag": 100,
+                "mr": 0,
+                "mr_percent": 0
+            }
         
         base_stats = animal_data["stats"]
-        # Công thức scale: base * (1 + 0.15 * (level - 1))
-        multiplier = 1 + 0.15 * (level - 1)
+        
+        # HP: 2 * "hp stat" * "level" + 500
+        hp = 2 * base_stats["hp"] * level + 500
+        
+        # ATK (STR): "str stat" * "level" + 100
+        atk = base_stats["atk"] * level + 100
+        
+        # PR Percentage: 0.8 x ((25 + 2 * "level" * "PR stat") / (125 + 2 * "level" * "PR stat"))
+        pr_stat = base_stats["pr"]
+        pr_numerator = 25 + 2 * level * pr_stat
+        pr_denominator = 125 + 2 * level * pr_stat
+        pr_percent = 0.8 * (pr_numerator / pr_denominator) if pr_denominator != 0 else 0
+        
+        # WP (Mana): 2 * "wp stat" * "level" + 500
+        wp = 2 * base_stats["wp"] * level + 500
+        
+        # MAG: "mag stat" * "level" + 100
+        mag = base_stats["mag"] * level + 100
+        
+        # MR Percentage: 0.8 x ((25 + 2 * "level" * "MR stat") / (125 + 2 * "level" * "MR stat"))
+        mr_stat = base_stats["mr"]
+        mr_numerator = 25 + 2 * level * mr_stat
+        mr_denominator = 125 + 2 * level * mr_stat
+        mr_percent = 0.8 * (mr_numerator / mr_denominator) if mr_denominator != 0 else 0
         
         return {
-            "hp": int(base_stats["hp"] * multiplier * 10),  # HP scale x10 để có số máu hợp lý
-            "atk": int(base_stats["atk"] * multiplier * 5),  # ATK scale x5
-            "pr": int(base_stats["pr"] * multiplier),
-            "wp": int(base_stats["wp"] * multiplier),
-            "mag": int(base_stats["mag"] * multiplier * 5),  # MAG scale x5
-            "mr": int(base_stats["mr"] * multiplier)
+            "hp": int(hp),
+            "atk": int(atk),
+            "pr": pr_stat,
+            "pr_percent": pr_percent * 100,  # Chuyển sang %
+            "wp": int(wp),
+            "mag": int(mag),
+            "mr": mr_stat,
+            "mr_percent": mr_percent * 100  # Chuyển sang %
         }
     
     def show_zoo(self):
@@ -636,9 +669,9 @@ class Game:
                         print(Colors.OKBLUE + "║" + f"  📊 CHỈ SỐ: {selected_animal.upper()} {animal_data['emoji']}" + " " * (56 - len(selected_animal)) + "║" + Colors.ENDC)
                         print(Colors.OKBLUE + "╚" + "═" * 68 + "╝" + Colors.ENDC)
                         
-                        # Hiển thị stats gốc
+                        # Chỉ hiển thị stats base
                         stats = animal_data['stats']
-                        print(f"\n{Colors.BOLD}Chỉ số cơ bản (Level 1):{Colors.ENDC}")
+                        print(f"\n{Colors.BOLD}Chỉ số cơ bản:{Colors.ENDC}")
                         print(f"  ❤️  HP (Health Points):        {stats['hp']}")
                         print(f"  ⚔️  ATK (Physical Attack):     {stats['atk']}")
                         print(f"  🛡️  PR (Physical Resistance):  {stats['pr']}")
@@ -646,15 +679,8 @@ class Game:
                         print(f"  ✨ MAG (Magical Attack):       {stats['mag']}")
                         print(f"  🌟 MR (Magical Resistance):    {stats['mr']}")
                         
-                        # Hiển thị stats thực tế ở level hiện tại
-                        real_stats = self.calculate_real_stats(selected_animal, self.data['level'])
-                        print(f"\n{Colors.BOLD}Chỉ số thực tế (Level {self.data['level']}):{Colors.ENDC}")
-                        print(f"  ❤️  HP:  {Colors.OKGREEN}{real_stats['hp']}{Colors.ENDC}")
-                        print(f"  ⚔️  ATK: {Colors.FAIL}{real_stats['atk']}{Colors.ENDC}")
-                        print(f"  🛡️  PR:  {real_stats['pr']}")
-                        print(f"  💎 WP:  {real_stats['wp']}")
-                        print(f"  ✨ MAG: {Colors.HEADER}{real_stats['mag']}{Colors.ENDC}")
-                        print(f"  🌟 MR:  {real_stats['mr']}")
+                        print(f"\n{Colors.GRAY}💡 Ghi chú: Đây là chỉ số cơ bản (base stats)")
+                        print(f"Stats thực tế sẽ được tính dựa trên level trong chiến đấu.{Colors.ENDC}")
                         
                         input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
                 else:
@@ -922,7 +948,7 @@ class Game:
             
             print(f"\n💰 Coins: {Colors.BOLD}{Colors.OKGREEN}{self.data['coins']}{Colors.ENDC}")
             print(f"⭐ Level: {Colors.BOLD}{self.data['level']}{Colors.ENDC} ({exp_percent:.1f}%)")
-            print(f"✨ EXP: [{exp_bar}] {self.data['exp']:.2f}/{exp_needed}")
+            print(f"✨ EXP: [{exp_bar}] {self.data['exp']}/{exp_needed}")
             print(f"🎒 Túi đồ: {len(self.data['inventory'])} vật phẩm")
             print(f"🔥 Daily Streak: {Colors.WARNING}{self.data['daily_streak']} ngày{Colors.ENDC}")
             print(f"⚔️  Đội hình: {len(self.data['team'])}/3 pet")
@@ -1014,6 +1040,8 @@ class Game:
                         "max_hp": stats['hp'],
                         "atk": stats['atk'],
                         "mag": stats['mag'],
+                        "pr_percent": stats['pr_percent'],
+                        "mr_percent": stats['mr_percent'],
                         "level": self.data['level']
                     })
             
@@ -1049,6 +1077,8 @@ class Game:
                         "max_hp": stats['hp'],
                         "atk": stats['atk'],
                         "mag": stats['mag'],
+                        "pr_percent": stats['pr_percent'],
+                        "mr_percent": stats['mr_percent'],
                         "level": enemy_level
                     })
             
@@ -1102,12 +1132,27 @@ class Game:
                 
                 attacker = random.choice(alive_player)
                 target = random.choice(alive_enemy)
-                damage = random.randint(int(attacker['atk'] * 0.8), int(attacker['atk'] * 1.2))
-                target['hp'] -= damage
+                
+                # Random sử dụng physical hoặc magical attack
+                attack_type = random.choice(['physical', 'magical'])
+                if attack_type == 'physical':
+                    base_damage = attacker['atk']
+                    damage_reduction = target['pr_percent'] / 100
+                    attack_icon = "⚔️"
+                else:
+                    base_damage = attacker['mag']
+                    damage_reduction = target['mr_percent'] / 100
+                    attack_icon = "✨"
+                
+                # Tính damage cuối cùng với random variation
+                raw_damage = random.randint(int(base_damage * 0.8), int(base_damage * 1.2))
+                final_damage = int(raw_damage * (1 - damage_reduction))
+                
+                target['hp'] -= final_damage
                 if target['hp'] < 0:
                     target['hp'] = 0
                 
-                print(f"\n⚔️  {attacker['emoji']} {attacker['name']} tấn công {target['emoji']} {target['name']}: {Colors.FAIL}-{damage} HP{Colors.ENDC}")
+                print(f"\n{attack_icon} {attacker['emoji']} {attacker['name']} tấn công {target['emoji']} {target['name']}: {Colors.FAIL}-{final_damage} HP{Colors.ENDC}")
                 time.sleep(0.8)
                 
                 # Đội địch phản công
@@ -1117,12 +1162,27 @@ class Game:
                 if alive_enemy and alive_player:
                     attacker = random.choice(alive_enemy)
                     target = random.choice(alive_player)
-                    damage = random.randint(int(attacker['atk'] * 0.8), int(attacker['atk'] * 1.2))
-                    target['hp'] -= damage
+                    
+                    # Random sử dụng physical hoặc magical attack
+                    attack_type = random.choice(['physical', 'magical'])
+                    if attack_type == 'physical':
+                        base_damage = attacker['atk']
+                        damage_reduction = target['pr_percent'] / 100
+                        attack_icon = "⚔️"
+                    else:
+                        base_damage = attacker['mag']
+                        damage_reduction = target['mr_percent'] / 100
+                        attack_icon = "✨"
+                    
+                    # Tính damage cuối cùng với random variation
+                    raw_damage = random.randint(int(base_damage * 0.8), int(base_damage * 1.2))
+                    final_damage = int(raw_damage * (1 - damage_reduction))
+                    
+                    target['hp'] -= final_damage
                     if target['hp'] < 0:
                         target['hp'] = 0
                     
-                    print(f"💥 {attacker['emoji']} {attacker['name']} phản công {target['emoji']} {target['name']}: {Colors.FAIL}-{damage} HP{Colors.ENDC}")
+                    print(f"{attack_icon} {attacker['emoji']} {attacker['name']} phản công {target['emoji']} {target['name']}: {Colors.FAIL}-{final_damage} HP{Colors.ENDC}")
                     time.sleep(0.8)
                 
                 # Kiểm tra kết thúc
