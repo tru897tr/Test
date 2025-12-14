@@ -112,7 +112,7 @@ def check_requirements():
             f.write("test")
         os.remove(test_file)
         print(Colors.OKGREEN + "✓ OK" + Colors.ENDC)
-    except:
+    except Exception:
         issues.append("Không có quyền ghi file trong thư mục hiện tại")
         print(Colors.FAIL + "❌" + Colors.ENDC)
     
@@ -125,7 +125,7 @@ def check_requirements():
             print(Colors.WARNING + f"⚠ {cols} cols" + Colors.ENDC)
         else:
             print(Colors.OKGREEN + f"✓ {cols} cols" + Colors.ENDC)
-    except:
+    except Exception:
         print(Colors.WARNING + "⚠ Không xác định được" + Colors.ENDC)
     
     print(Colors.OKCYAN + "=" * 70 + Colors.ENDC)
@@ -236,6 +236,8 @@ class Game:
                         data["daily_streak"] = 0
                     if "total_daily_collected" not in data:
                         data["total_daily_collected"] = 0
+                    if "inventory" not in data:
+                        data["inventory"] = []
                     return data
             except Exception as e:
                 self.show_error("Không thể đọc file dữ liệu", e)
@@ -280,7 +282,7 @@ class Game:
         try:
             with open(DATA_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self.data, f, indent=4, ensure_ascii=False)
-        except:
+        except Exception:
             pass
     
     def get_daily_rewards(self, streak):
@@ -435,7 +437,9 @@ class Game:
             
             clear_screen()
             rarity_colors = {
-                "Common": Colors.GRAY
+                "Common": Colors.GRAY,
+                "Uncommon": Colors.OKGREEN,
+                "Rare": Colors.OKBLUE
             }
             color = rarity_colors.get(rarity, Colors.ENDC)
             
@@ -472,6 +476,33 @@ class Game:
             if animal["name"] in self.data["zoo"]:
                 return True
         return False
+    
+    def get_animal_data(self, animal_name):
+        """Lấy thông tin động vật từ tên"""
+        for rarity, animals in ANIMALS.items():
+            for animal in animals:
+                if animal["name"] == animal_name:
+                    return animal
+        return None
+    
+    def calculate_real_stats(self, animal_name, level):
+        """Tính toán stats thực tế dựa trên level"""
+        animal_data = self.get_animal_data(animal_name)
+        if not animal_data:
+            return {"hp": 10, "atk": 5, "pr": 1, "wp": 1, "mag": 1, "mr": 1}
+        
+        base_stats = animal_data["stats"]
+        # Công thức scale: base * (1 + 0.15 * (level - 1))
+        multiplier = 1 + 0.15 * (level - 1)
+        
+        return {
+            "hp": int(base_stats["hp"] * multiplier * 10),  # HP scale x10 để có số máu hợp lý
+            "atk": int(base_stats["atk"] * multiplier * 5),  # ATK scale x5
+            "pr": int(base_stats["pr"] * multiplier),
+            "wp": int(base_stats["wp"] * multiplier),
+            "mag": int(base_stats["mag"] * multiplier * 5),  # MAG scale x5
+            "mr": int(base_stats["mr"] * multiplier)
+        }
     
     def show_zoo(self):
         """Hiển thị sở thú"""
@@ -562,14 +593,6 @@ class Game:
         except Exception as e:
             self.show_error("Lỗi khi hiển thị sở thú", e)
     
-    def get_animal_data(self, animal_name):
-        """Lấy thông tin động vật từ tên"""
-        for rarity, animals in ANIMALS.items():
-            for animal in animals:
-                if animal["name"] == animal_name:
-                    return animal
-        return None
-    
     def view_animal_stats(self):
         """Xem chỉ số động vật"""
         try:
@@ -613,14 +636,25 @@ class Game:
                         print(Colors.OKBLUE + "║" + f"  📊 CHỈ SỐ: {selected_animal.upper()} {animal_data['emoji']}" + " " * (56 - len(selected_animal)) + "║" + Colors.ENDC)
                         print(Colors.OKBLUE + "╚" + "═" * 68 + "╝" + Colors.ENDC)
                         
+                        # Hiển thị stats gốc
                         stats = animal_data['stats']
-                        print(f"\n{Colors.BOLD}Chỉ số cơ bản:{Colors.ENDC}")
+                        print(f"\n{Colors.BOLD}Chỉ số cơ bản (Level 1):{Colors.ENDC}")
                         print(f"  ❤️  HP (Health Points):        {stats['hp']}")
                         print(f"  ⚔️  ATK (Physical Attack):     {stats['atk']}")
                         print(f"  🛡️  PR (Physical Resistance):  {stats['pr']}")
                         print(f"  💎 WP (Weapon Points):         {stats['wp']}")
                         print(f"  ✨ MAG (Magical Attack):       {stats['mag']}")
                         print(f"  🌟 MR (Magical Resistance):    {stats['mr']}")
+                        
+                        # Hiển thị stats thực tế ở level hiện tại
+                        real_stats = self.calculate_real_stats(selected_animal, self.data['level'])
+                        print(f"\n{Colors.BOLD}Chỉ số thực tế (Level {self.data['level']}):{Colors.ENDC}")
+                        print(f"  ❤️  HP:  {Colors.OKGREEN}{real_stats['hp']}{Colors.ENDC}")
+                        print(f"  ⚔️  ATK: {Colors.FAIL}{real_stats['atk']}{Colors.ENDC}")
+                        print(f"  🛡️  PR:  {real_stats['pr']}")
+                        print(f"  💎 WP:  {real_stats['wp']}")
+                        print(f"  ✨ MAG: {Colors.HEADER}{real_stats['mag']}{Colors.ENDC}")
+                        print(f"  🌟 MR:  {real_stats['mr']}")
                         
                         input(f"\n{Colors.GRAY}Nhấn Enter để quay lại...{Colors.ENDC}")
                 else:
@@ -634,6 +668,8 @@ class Game:
                 
         except Exception as e:
             self.show_error("Lỗi khi xem chỉ số động vật", e)
+    
+    def sell_animal(self):
         """Bán động vật"""
         try:
             clear_screen()
@@ -720,6 +756,7 @@ class Game:
                         del self.data["zoo"][animal_name]
                     
                     self.data["coins"] += total_coins
+                    self.data["stats"]["total_coins_earned"] += total_coins
                     
                     # Lưu ngay
                     self.save_data()
@@ -738,6 +775,136 @@ class Game:
                 
         except Exception as e:
             self.show_error("Lỗi khi bán động vật", e)
+    
+    def manage_team(self):
+        """Quản lý đội hình"""
+        try:
+            while True:
+                clear_screen()
+                print(Colors.HEADER + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                print(Colors.HEADER + "║" + " " * 26 + "⚔️  THIẾT LẬP ĐỘI" + " " * 25 + "║" + Colors.ENDC)
+                print(Colors.HEADER + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                
+                print(f"\n{Colors.BOLD}Đội hình hiện tại ({len(self.data['team'])}/3):{Colors.ENDC}\n")
+                
+                if self.data["team"]:
+                    for i, animal_name in enumerate(self.data["team"], 1):
+                        animal_data = self.get_animal_data(animal_name)
+                        if animal_data:
+                            stats = self.calculate_real_stats(animal_name, self.data['level'])
+                            print(f"  {i}. {animal_data['emoji']} {animal_name.capitalize()} (Lv.{self.data['level']}) - HP: {stats['hp']} | ATK: {stats['atk']}")
+                else:
+                    print(f"  {Colors.GRAY}(Đội trống){Colors.ENDC}")
+                
+                print(f"\n1. ➕ Thêm pet vào đội")
+                print(f"2. ➖ Xóa pet khỏi đội")
+                print(f"0. Quay lại")
+                
+                choice = input(f"\n{Colors.OKCYAN}👉 Chọn: {Colors.ENDC}").strip()
+                
+                if choice == "1":
+                    if len(self.data["team"]) >= 3:
+                        print(f"\n{Colors.FAIL}❌ Đội đã đầy (tối đa 3 pet)!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    if not self.data["zoo"]:
+                        print(f"\n{Colors.FAIL}❌ Bạn chưa có động vật nào!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    clear_screen()
+                    print(Colors.OKGREEN + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.OKGREEN + "║" + " " * 25 + "➕ THÊM PET VÀO ĐỘI" + " " * 24 + "║" + Colors.ENDC)
+                    print(Colors.OKGREEN + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    print(f"\n{Colors.BOLD}Động vật có sẵn:{Colors.ENDC}\n")
+                    
+                    available_animals = []
+                    index = 1
+                    for animal_name in self.data["zoo"].keys():
+                        if animal_name not in self.data["team"]:
+                            animal_data = self.get_animal_data(animal_name)
+                            if animal_data:
+                                stats = self.calculate_real_stats(animal_name, self.data['level'])
+                                print(f"{index}. {animal_data['emoji']} {animal_name.capitalize()} - HP: {stats['hp']} | ATK: {stats['atk']}")
+                                available_animals.append(animal_name)
+                                index += 1
+                    
+                    if not available_animals:
+                        print(f"\n{Colors.GRAY}Tất cả động vật đã ở trong đội!{Colors.ENDC}")
+                        input(f"\n{Colors.GRAY}Nhấn Enter để tiếp tục...{Colors.ENDC}")
+                        continue
+                    
+                    print(f"\n0. Hủy")
+                    
+                    try:
+                        pet_choice = input(f"\n{Colors.OKCYAN}👉 Chọn pet (số): {Colors.ENDC}").strip()
+                        
+                        if pet_choice == "0":
+                            continue
+                        
+                        pet_idx = int(pet_choice) - 1
+                        if 0 <= pet_idx < len(available_animals):
+                            selected_pet = available_animals[pet_idx]
+                            self.data["team"].append(selected_pet)
+                            self.save_data()
+                            print(f"\n{Colors.OKGREEN}✅ Đã thêm {selected_pet} vào đội!{Colors.ENDC}")
+                            time.sleep(1.5)
+                        else:
+                            print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                            time.sleep(1.5)
+                    except ValueError:
+                        print(f"\n{Colors.FAIL}❌ Vui lòng nhập số!{Colors.ENDC}")
+                        time.sleep(1.5)
+                
+                elif choice == "2":
+                    if not self.data["team"]:
+                        print(f"\n{Colors.FAIL}❌ Đội đang trống!{Colors.ENDC}")
+                        time.sleep(1.5)
+                        continue
+                    
+                    clear_screen()
+                    print(Colors.FAIL + "╔" + "═" * 68 + "╗" + Colors.ENDC)
+                    print(Colors.FAIL + "║" + " " * 25 + "➖ XÓA PET KHỎI ĐỘI" + " " * 24 + "║" + Colors.ENDC)
+                    print(Colors.FAIL + "╚" + "═" * 68 + "╝" + Colors.ENDC)
+                    
+                    print(f"\n{Colors.BOLD}Pet trong đội:{Colors.ENDC}\n")
+                    
+                    for i, animal_name in enumerate(self.data["team"], 1):
+                        animal_data = self.get_animal_data(animal_name)
+                        if animal_data:
+                            print(f"{i}. {animal_data['emoji']} {animal_name.capitalize()}")
+                    
+                    print(f"\n0. Hủy")
+                    
+                    try:
+                        remove_choice = input(f"\n{Colors.OKCYAN}👉 Chọn pet cần xóa (số): {Colors.ENDC}").strip()
+                        
+                        if remove_choice == "0":
+                            continue
+                        
+                        remove_idx = int(remove_choice) - 1
+                        if 0 <= remove_idx < len(self.data["team"]):
+                            removed_pet = self.data["team"].pop(remove_idx)
+                            self.save_data()
+                            print(f"\n{Colors.OKGREEN}✅ Đã xóa {removed_pet} khỏi đội!{Colors.ENDC}")
+                            time.sleep(1.5)
+                        else:
+                            print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                            time.sleep(1.5)
+                    except ValueError:
+                        print(f"\n{Colors.FAIL}❌ Vui lòng nhập số!{Colors.ENDC}")
+                        time.sleep(1.5)
+                
+                elif choice == "0":
+                    return
+                else:
+                    print(f"\n{Colors.FAIL}❌ Lựa chọn không hợp lệ!{Colors.ENDC}")
+                    time.sleep(1)
+                    
+        except Exception as e:
+            self.show_error("Lỗi khi quản lý đội hình", e)
     
     def show_stats(self):
         """Hiển thị thông tin người chơi"""
@@ -758,6 +925,7 @@ class Game:
             print(f"✨ EXP: [{exp_bar}] {self.data['exp']:.2f}/{exp_needed}")
             print(f"🎒 Túi đồ: {len(self.data['inventory'])} vật phẩm")
             print(f"🔥 Daily Streak: {Colors.WARNING}{self.data['daily_streak']} ngày{Colors.ENDC}")
+            print(f"⚔️  Đội hình: {len(self.data['team'])}/3 pet")
             
             print(f"\n{Colors.BOLD}📈 THỐNG KÊ:{Colors.ENDC}")
             print(f"  • Tổng coins kiếm được: {self.data['stats']['total_coins_earned']}")
@@ -833,7 +1001,7 @@ class Game:
             
             loading_animation("Đang tìm đối thủ", 2)
             
-            # Tạo đội địch
+            # Tạo đội mình
             player_team = []
             for animal_name in self.data["team"]:
                 animal_data = self.get_animal_data(animal_name)
@@ -858,13 +1026,13 @@ class Game:
             enemy_total_level = 0
             enemy_count = random.randint(1, 3)
             
+            # Thu thập tất cả động vật có thể làm địch
+            all_animals_list = []
+            for rarity, animals in ANIMALS.items():
+                if animals:
+                    all_animals_list.extend(animals)
+            
             for i in range(enemy_count):
-                # Chọn pet ngẫu nhiên
-                all_animals_list = []
-                for rarity, animals in ANIMALS.items():
-                    if animals:
-                        all_animals_list.extend(animals)
-                
                 if all_animals_list:
                     enemy_animal = random.choice(all_animals_list)
                     # Random level sao cho tổng không vượt quá
@@ -944,9 +1112,11 @@ class Game:
                 
                 # Đội địch phản công
                 alive_enemy = [p for p in enemy_team if p['hp'] > 0]
-                if alive_enemy:
+                alive_player = [p for p in player_team if p['hp'] > 0]
+                
+                if alive_enemy and alive_player:
                     attacker = random.choice(alive_enemy)
-                    target = random.choice([p for p in player_team if p['hp'] > 0])
+                    target = random.choice(alive_player)
                     damage = random.randint(int(attacker['atk'] * 0.8), int(attacker['atk'] * 1.2))
                     target['hp'] -= damage
                     if target['hp'] < 0:
@@ -1024,7 +1194,7 @@ class Game:
         try:
             clear_screen()
             print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
-            print_with_effect("🎮 CHÀO MỪNG ĐÃ ĐẾN VỚI GAME PHIÊU LƯU!", 0.03, Colors.BOLD)
+            print_with_effect("🎮 CHÀO MỪNG ĐẾN VỚI GAME PHIÊU LƯU!", 0.03, Colors.BOLD)
             print_with_effect("=" * 70, 0.01, Colors.OKCYAN)
             time.sleep(1)
             
